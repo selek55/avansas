@@ -55,11 +55,7 @@ public class ProductController : Controller
         var userId = User.Identity?.IsAuthenticated == true ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
         var sessionId = HttpContext.Session.Id;
 
-        // Görüntüleme kaydet + öneriler — fire-and-forget ile ana akışı engelleme
-        _ = Task.Run(async () =>
-        {
-            await _recommendationService.RecordProductViewAsync(product.Id, userId, sessionId);
-        });
+        await _recommendationService.RecordProductViewAsync(product.Id, userId, sessionId);
 
         // Kritik veriler
         var reviewsTask = _reviewService.GetApprovedReviewsAsync(product.Id);
