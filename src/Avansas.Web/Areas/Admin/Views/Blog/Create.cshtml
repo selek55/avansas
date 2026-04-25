@@ -1,0 +1,106 @@
+@model CreateBlogPostDto
+@{
+    ViewData["Title"] = "Yeni Blog Yazısı";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="Title" class="form-label fw-semibold">Başlık *</label>
+                            <input asp-for="Title" class="form-control" placeholder="Yazı başlığını girin" id="nameInput" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Slug" class="form-label fw-semibold">
+                                Slug <small class="text-muted fw-normal">(URL adresi — otomatik doldurulur)</small>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text text-muted small">/blog/</span>
+                                <input asp-for="Slug" class="form-control" id="slugInput" placeholder="yazi-basligi" />
+                            </div>
+                            <div class="mt-1 small">
+                                <span class="text-muted">Önizleme: </span>
+                                <a id="slugPreview" href="#" target="_blank" class="text-primary text-decoration-none fst-italic">/blog/</a>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Summary" class="form-label fw-semibold">Özet</label>
+                            <textarea asp-for="Summary" class="form-control" rows="2" placeholder="Kısa özet..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Content" class="form-label fw-semibold">İçerik *</label>
+                            <textarea asp-for="Content" class="form-control" rows="12" placeholder="Blog yazısı içeriği..."></textarea>
+                            <span asp-validation-for="Content" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ImageUrl" class="form-label fw-semibold">Görsel URL</label>
+                            <input asp-for="ImageUrl" class="form-control" placeholder="/images/blog/..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="BlogCategoryId" class="form-label fw-semibold">Kategori</label>
+                            <select asp-for="BlogCategoryId" asp-items="ViewBag.BlogCategories" class="form-select">
+                                <option value="">Kategori seçin</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <hr />
+                            <h6 class="fw-semibold text-muted mb-3">SEO</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="MetaTitle" class="form-label fw-semibold">Meta Başlık</label>
+                            <input asp-for="MetaTitle" class="form-control" placeholder="SEO başlık" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="MetaDescription" class="form-label fw-semibold">Meta Açıklama</label>
+                            <input asp-for="MetaDescription" class="form-control" placeholder="SEO açıklama" />
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input asp-for="IsPublished" class="form-check-input" />
+                                <label asp-for="IsPublished" class="form-check-label">Yayınla</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Kaydet
+                            </button>
+                            <a href="/admin/blog" class="btn btn-outline-secondary ms-2">İptal</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function() {
+    const nameEl = document.getElementById('nameInput');
+    const slugEl = document.getElementById('slugInput');
+    let manual = false;
+
+    function toSlug(v) {
+        return v.toLowerCase()
+            .replace(/ş/g,'s').replace(/ğ/g,'g').replace(/ü/g,'u')
+            .replace(/ö/g,'o').replace(/ç/g,'c').replace(/ı/g,'i').replace(/İ/g,'i')
+            .replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'').replace(/-+/g,'-');
+    }
+    const preview = document.getElementById('slugPreview');
+    function updatePreview(slug) { preview.textContent = '/blog/' + (slug || '...'); preview.href = '/blog/' + slug; }
+    nameEl.addEventListener('input', () => { if (!manual) { slugEl.value = toSlug(nameEl.value); updatePreview(slugEl.value); } });
+    slugEl.addEventListener('input', () => { manual = slugEl.value !== ''; slugEl.value = toSlug(slugEl.value); updatePreview(slugEl.value); });
+    updatePreview(slugEl.value);
+})();
+</script>
+}

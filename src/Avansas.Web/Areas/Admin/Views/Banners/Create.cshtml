@@ -1,0 +1,66 @@
+@model Avansas.Application.DTOs.CreateBannerDto
+@{
+    ViewData["Title"] = "Yeni Banner";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Yeni Banner</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Geri</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Başlık *</label>
+                    <input asp-for="Title" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Alt Başlık</label>
+                    <input asp-for="SubTitle" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Görsel URL *</label>
+                    <input asp-for="ImageUrl" class="form-control" required placeholder="https://..." />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Mobil Görsel URL</label>
+                    <input asp-for="MobileImageUrl" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Link URL</label>
+                    <input asp-for="LinkUrl" class="form-control" placeholder="/urunler" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Buton Metni</label>
+                    <input asp-for="ButtonText" class="form-control" placeholder="Alışverişe Başla" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Görüntüleme Sırası</label>
+                    <input asp-for="DisplayOrder" type="number" min="0" class="form-control" value="0" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Başlangıç Tarihi</label>
+                    <input asp-for="ValidFrom" type="datetime-local" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Bitiş Tarihi</label>
+                    <input asp-for="ValidTo" type="datetime-local" class="form-control" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                        <label asp-for="IsActive" class="form-check-label">Aktif</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary px-4">Kaydet</button>
+                <a asp-action="Index" class="btn btn-outline-secondary ms-2">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>

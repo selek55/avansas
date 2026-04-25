@@ -1,0 +1,144 @@
+@model Avansas.Application.DTOs.ReturnRequestDto
+@{
+    ViewData["Title"] = $"İade Talebi #{Model.Id}";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var badgeClass = Model.Status switch {
+        Avansas.Domain.Enums.ReturnStatus.Pending => "warning",
+        Avansas.Domain.Enums.ReturnStatus.Approved => "info",
+        Avansas.Domain.Enums.ReturnStatus.Rejected => "danger",
+        Avansas.Domain.Enums.ReturnStatus.Refunded => "success",
+        Avansas.Domain.Enums.ReturnStatus.Cancelled => "secondary",
+        _ => "secondary"
+    };
+}
+
+<a href="/admin/returns" class="btn btn-outline-secondary mb-3">
+    <i class="fas fa-arrow-left me-1"></i> Geri
+</a>
+
+<div class="row g-4">
+    <!-- Return Info -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold">İade Bilgileri</h6>
+                <span class="badge bg-@badgeClass fs-6">@Model.StatusText</span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-3 text-muted">Sipariş No</div>
+                    <div class="col-sm-9 fw-semibold">@Model.OrderNumber</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-3 text-muted">Müşteri</div>
+                    <div class="col-sm-9">@Model.UserFullName</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-3 text-muted">Sebep</div>
+                    <div class="col-sm-9">@Model.Reason</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-3 text-muted">İade Tutarı</div>
+                    <div class="col-sm-9 fw-bold text-danger">@Model.RefundAmount.ToString("N2") ₺</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-3 text-muted">Talep Tarihi</div>
+                    <div class="col-sm-9">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+                </div>
+                @if (Model.ProcessedAt.HasValue)
+                {
+                    <div class="row mb-3">
+                        <div class="col-sm-3 text-muted">İşlem Tarihi</div>
+                        <div class="col-sm-9">@Model.ProcessedAt.Value.ToString("dd.MM.yyyy HH:mm")</div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.AdminNotes))
+                {
+                    <div class="row mb-3">
+                        <div class="col-sm-3 text-muted">Admin Notu</div>
+                        <div class="col-sm-9">@Model.AdminNotes</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Items -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-bold">İade Edilen Ürünler</h6>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Ürün</th>
+                            <th>Adet</th>
+                            <th>Birim Fiyat</th>
+                            <th>Toplam</th>
+                            <th>Sebep</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.ProductName</td>
+                                <td>@item.Quantity</td>
+                                <td>@item.UnitPrice.ToString("N2") ₺</td>
+                                <td class="fw-bold">@((item.UnitPrice * item.Quantity).ToString("N2")) ₺</td>
+                                <td class="text-muted small">@(item.Reason ?? "-")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="col-lg-4">
+        @if (Model.Status == Avansas.Domain.Enums.ReturnStatus.Pending)
+        {
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0 fw-bold">İşlemler</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="/admin/returns/approve/@Model.Id" class="mb-3">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-2">
+                            <textarea name="adminNotes" class="form-control" rows="3" placeholder="Admin notu (opsiyonel)"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 mb-2">
+                            <i class="fas fa-check me-1"></i> Onayla
+                        </button>
+                    </form>
+                    <form method="post" action="/admin/returns/reject/@Model.Id">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="adminNotes" />
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-times me-1"></i> Reddet
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        @if (Model.Status == Avansas.Domain.Enums.ReturnStatus.Approved)
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0 fw-bold">İade İşlemi</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="/admin/returns/refund/@Model.Id">
+                        @Html.AntiForgeryToken()
+                        <p class="text-muted small">Onaylanan iade tutarı müşteriye iade edilecek.</p>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-undo me-1"></i> @Model.RefundAmount.ToString("N2") ₺ İade Et
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

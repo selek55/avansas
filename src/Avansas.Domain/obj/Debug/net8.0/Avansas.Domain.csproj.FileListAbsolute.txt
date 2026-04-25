@@ -1,0 +1,12 @@
+D:\repos\selek55\avansas\src\Avansas.Domain\bin\Debug\net8.0\Avansas.Domain.deps.json
+D:\repos\selek55\avansas\src\Avansas.Domain\bin\Debug\net8.0\Avansas.Domain.dll
+D:\repos\selek55\avansas\src\Avansas.Domain\bin\Debug\net8.0\Avansas.Domain.pdb
+D:\repos\selek55\avansas\src\Avansas.Domain\obj\Debug\net8.0\Avansas.Domain.csproj.AssemblyReference.cache
+D:\repos\selek55\avansas\src\Avansas.Domain\obj\Debug\net8.0\Avansas.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\repos\selek55\avansas\src\Avansas.Domain\obj\Debug\net8.0\Avansas.Domain.AssemblyInfoInputs.cache
+D:\repos\selek55\avansas\src\Avansas.Domain\obj\Debug\net8.0\Avansas.Domain.AssemblyInfo.cs
+D:\repos\selek55\avansas\src\Avansas.Domain\obj\Debug\net8.0\Avansas.Domain.csproj.CoreCompileInputs.cache
+D:\repos\selek55\avansas\src\Avansas.Domain\obj\Debug\net8.0\Avansas.Domain.dll
+D:\repos\selek55\avansas\src\Avansas.Domain\obj\Debug\net8.0\refint\Avansas.Domain.dll
+D:\repos\selek55\avansas\src\Avansas.Domain\obj\Debug\net8.0\Avansas.Domain.pdb
+D:\repos\selek55\avansas\src\Avansas.Domain\obj\Debug\net8.0\ref\Avansas.Domain.dll

@@ -1,0 +1,54 @@
+@using Avansas.Application.Interfaces
+@model ShipmentTrackingDto
+
+@if (Model != null)
+{
+    <div class="shipment-timeline">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <strong>@Model.CargoCompanyName</strong>
+                <span class="text-muted ms-2">Takip No: @Model.TrackingNumber</span>
+            </div>
+            @if (Model.TrackingUrl != "#")
+            {
+                <a href="@Model.TrackingUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-external-link-alt me-1"></i>Kargo Takip
+                </a>
+            }
+        </div>
+
+        <div class="timeline">
+            @foreach (var ev in Model.Events.OrderByDescending(e => e.EventDate))
+            {
+                var isFirst = ev == Model.Events.OrderByDescending(e => e.EventDate).First();
+                <div class="timeline-item @(isFirst ? "active" : "")">
+                    <div class="timeline-dot @(isFirst ? "bg-primary" : "bg-secondary")"></div>
+                    <div class="timeline-content">
+                        <div class="fw-semibold">@ev.Description</div>
+                        @if (!string.IsNullOrEmpty(ev.Location))
+                        {
+                            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>@ev.Location</small>
+                        }
+                        <div class="text-muted small">@ev.EventDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (Model.EstimatedDeliveryAt.HasValue)
+        {
+            <div class="alert alert-info mt-3 mb-0 py-2">
+                <i class="fas fa-clock me-2"></i>
+                Tahmini Teslimat: <strong>@Model.EstimatedDeliveryAt.Value.ToLocalTime().ToString("dd.MM.yyyy")</strong>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .timeline { position: relative; padding-left: 28px; }
+    .timeline::before { content: ''; position: absolute; left: 9px; top: 0; bottom: 0; width: 2px; background: #dee2e6; }
+    .timeline-item { position: relative; margin-bottom: 16px; }
+    .timeline-dot { position: absolute; left: -24px; top: 4px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 2px #dee2e6; }
+    .timeline-item.active .timeline-dot { box-shadow: 0 0 0 2px #0d6efd; }
+</style>

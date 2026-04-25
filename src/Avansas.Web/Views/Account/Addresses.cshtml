@@ -1,0 +1,78 @@
+@model IEnumerable<Avansas.Application.DTOs.AddressDto>
+@{
+    ViewData["Title"] = "Adreslerim";
+}
+
+<div class="container">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <div class="bg-white rounded-3 shadow-sm p-3">
+                <nav class="nav flex-column gap-1">
+                    <a href="/hesap/profile" class="nav-link text-dark px-3 py-2"><i class="fas fa-user me-2"></i> Profilim</a>
+                    <a href="/hesap/orders" class="nav-link text-dark px-3 py-2"><i class="fas fa-box me-2"></i> Siparişlerim</a>
+                    <a href="/hesap/adresler" class="nav-link active px-3 py-2 rounded-2 bg-primary text-white">
+                        <i class="fas fa-map-marker-alt me-2"></i> Adreslerim
+                    </a>
+                    <form method="post" action="/hesap/logout" class="mt-2">
+                        <button type="submit" class="nav-link text-danger px-3 py-2 btn btn-link w-100 text-start">
+                            <i class="fas fa-sign-out-alt me-2"></i> Çıkış Yap
+                        </button>
+                    </form>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Adreslerim</h5>
+                </div>
+
+                <!-- Yeni Adres Formu -->
+                <div class="mb-4 p-3 border rounded-2 bg-light" id="newAddressSection" style="display:none">
+                    <h6 class="fw-semibold mb-3"><i class="fas fa-plus me-1"></i> Yeni Adres Ekle</h6>
+                    <partial name="_AddressForm" />
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm mb-3"
+                        onclick="document.getElementById('newAddressSection').style.display = document.getElementById('newAddressSection').style.display === 'none' ? '' : 'none'">
+                    <i class="fas fa-plus me-1"></i> Yeni Adres Ekle
+                </button>
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Kayıtlı adresiniz yok.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-3">
+                        @foreach (var addr in Model)
+                        {
+                            <div class="col-md-6">
+                                <div class="border rounded-2 p-3 h-100">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="fw-semibold">@addr.Title</span>
+                                        @if (addr.IsDefault)
+                                        {
+                                            <span class="badge bg-primary" style="font-size:.65rem">Varsayılan</span>
+                                        }
+                                    </div>
+                                    <p class="small mb-1">@addr.FirstName @addr.LastName</p>
+                                    <p class="small text-muted mb-1">@addr.AddressLine1</p>
+                                    @if (!string.IsNullOrEmpty(addr.AddressLine2))
+                                    {
+                                        <p class="small text-muted mb-1">@addr.AddressLine2</p>
+                                    }
+                                    <p class="small text-muted mb-1">@addr.District / @addr.City @addr.PostalCode</p>
+                                    <p class="small text-muted mb-0">@addr.Phone</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

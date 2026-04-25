@@ -1,0 +1,96 @@
+@model List<Avansas.Application.DTOs.ReturnRequestDto>
+@{
+    ViewData["Title"] = "İade Taleplerim";
+}
+
+<div class="container">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <div class="bg-white rounded-3 shadow-sm p-3">
+                <nav class="nav flex-column gap-1">
+                    <a href="/hesap/profil" class="nav-link text-dark px-3 py-2">
+                        <i class="fas fa-user me-2"></i> Profilim
+                    </a>
+                    <a href="/hesap/siparisler" class="nav-link text-dark px-3 py-2">
+                        <i class="fas fa-box me-2"></i> Siparişlerim
+                    </a>
+                    <a href="/hesap/iadeler" class="nav-link active px-3 py-2 rounded-2 bg-primary text-white">
+                        <i class="fas fa-undo me-2"></i> İade Taleplerim
+                    </a>
+                    <a href="/hesap/adresler" class="nav-link text-dark px-3 py-2">
+                        <i class="fas fa-map-marker-alt me-2"></i> Adreslerim
+                    </a>
+                    <form method="post" action="/hesap/cikis" class="mt-2">
+                        <button type="submit" class="nav-link text-danger px-3 py-2 btn btn-link w-100 text-start">
+                            <i class="fas fa-sign-out-alt me-2"></i> Çıkış Yap
+                        </button>
+                    </form>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <h5 class="fw-bold mb-4">İade Taleplerim</h5>
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-undo fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Henüz iade talebiniz yok.</p>
+                        <a href="/hesap/siparisler" class="btn btn-primary">Siparişlerime Git</a>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var ret in Model)
+                    {
+                        var badgeClass = ret.Status switch {
+                            Avansas.Domain.Enums.ReturnStatus.Pending => "warning",
+                            Avansas.Domain.Enums.ReturnStatus.Approved => "info",
+                            Avansas.Domain.Enums.ReturnStatus.Rejected => "danger",
+                            Avansas.Domain.Enums.ReturnStatus.Refunded => "success",
+                            Avansas.Domain.Enums.ReturnStatus.Cancelled => "secondary",
+                            _ => "secondary"
+                        };
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="fw-bold">Sipariş: @ret.OrderNumber</span>
+                                    <span class="badge bg-@badgeClass ms-2">@ret.StatusText</span>
+                                </div>
+                                <small class="text-muted">@ret.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                            </div>
+                            <p class="text-muted small mb-2">@ret.Reason</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-danger">İade Tutarı: @ret.RefundAmount.ToString("N2") ₺</span>
+                                <div>
+                                    @if (ret.Status == Avansas.Domain.Enums.ReturnStatus.Pending)
+                                    {
+                                        <form method="post" action="/hesap/iade-iptal/@ret.Id" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-times me-1"></i> İptal Et
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                            @if (ret.Items.Any())
+                            {
+                                <div class="mt-2 pt-2 border-top">
+                                    @foreach (var item in ret.Items)
+                                    {
+                                        <div class="small text-muted">
+                                            @item.ProductName x @item.Quantity - @((item.UnitPrice * item.Quantity).ToString("N2")) ₺
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

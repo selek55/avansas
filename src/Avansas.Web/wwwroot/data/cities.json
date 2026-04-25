@@ -1,0 +1,42 @@
+[
+  {
+    "name": "İstanbul",
+    "districts": ["Kadıköy", "Beşiktaş", "Üsküdar", "Fatih", "Bakırköy", "Şişli", "Beyoğlu", "Ataşehir", "Maltepe", "Kartal"]
+  },
+  {
+    "name": "Ankara",
+    "districts": ["Çankaya", "Keçiören", "Mamak", "Yenimahalle", "Etimesgut", "Sincan", "Altındağ", "Pursaklar"]
+  },
+  {
+    "name": "İzmir",
+    "districts": ["Konak", "Karşıyaka", "Bornova", "Buca", "Bayraklı", "Çiğli", "Gaziemir", "Narlıdere"]
+  },
+  {
+    "name": "Bursa",
+    "districts": ["Osmangazi", "Nilüfer", "Yıldırım", "Gemlik", "Mudanya", "İnegöl", "Gürsu"]
+  },
+  {
+    "name": "Antalya",
+    "districts": ["Muratpaşa", "Konyaaltı", "Kepez", "Aksu", "Döşemealtı", "Alanya", "Manavgat"]
+  },
+  {
+    "name": "Adana",
+    "districts": ["Seyhan", "Çukurova", "Yüreğir", "Sarıçam", "Ceyhan", "Kozan"]
+  },
+  {
+    "name": "Konya",
+    "districts": ["Selçuklu", "Meram", "Karatay", "Ereğli", "Akşehir", "Beyşehir"]
+  },
+  {
+    "name": "Gaziantep",
+    "districts": ["Şahinbey", "Şehitkamil", "Oğuzeli", "Nizip", "İslahiye"]
+  },
+  {
+    "name": "Kocaeli",
+    "districts": ["İzmit", "Gebze", "Darıca", "Çayırova", "Derince", "Gölcük", "Kartepe"]
+  },
+  {
+    "name": "Mersin",
+    "districts": ["Yenişehir", "Mezitli", "Toroslar", "Akdeniz", "Tarsus", "Erdemli"]
+  }
+]

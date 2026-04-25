@@ -1,0 +1,70 @@
+@using Avansas.Application.DTOs
+@model OrderDto
+@{
+    ViewData["Title"] = "Havale / EFT Bilgileri";
+    var order = ViewBag.Order as OrderDto;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center mb-4">
+                <i class="fas fa-university text-primary" style="font-size:3rem;"></i>
+                <h2 class="mt-2">Havale / EFT ile Ödeme</h2>
+                <p class="text-muted">Aşağıdaki hesap bilgilerine ödemenizi yapınız.</p>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="card-title border-bottom pb-2">Sipariş Özeti</h5>
+                    <div class="d-flex justify-content-between">
+                        <span>Sipariş No:</span>
+                        <strong>#@order?.OrderNumber</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <span>Ödenecek Tutar:</span>
+                        <strong class="text-danger fs-5">@order?.Total.ToString("N2") ₺</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-warning border mb-4">
+                <div class="card-header bg-warning text-dark fw-bold">
+                    <i class="fas fa-building me-2"></i>Banka Hesap Bilgileri
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted w-40">Banka:</td>
+                            <td><strong>Avansas Bankası (Örnek)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Şube:</td>
+                            <td><strong>İstanbul / Kadıköy</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Hesap Adı:</td>
+                            <td><strong>Avansas Ofis Malzemeleri A.Ş.</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">IBAN:</td>
+                            <td><strong>TR00 0000 0000 0000 0000 0000 00</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Havale/EFT açıklamasına <strong>sipariş numaranızı (#@order?.OrderNumber)</strong> yazmayı unutmayınız.
+                Ödeme 48 saat içinde yapılmadığı takdirde siparişiniz iptal edilecektir.
+            </div>
+
+            <div class="text-center">
+                <a asp-action="Orders" asp-controller="Account" class="btn btn-primary">
+                    <i class="fas fa-list me-1"></i> Siparişlerime Git
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

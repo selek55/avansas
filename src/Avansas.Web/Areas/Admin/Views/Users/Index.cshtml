@@ -1,0 +1,114 @@
+@model Avansas.Application.DTOs.PagedResult<Avansas.Application.DTOs.UserDto>
+@{
+    ViewData["Title"] = "Kullanıcılar";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-5">
+                <input type="text" name="search" class="form-control" placeholder="Ad, e-posta veya şirket ara..."
+                       value="@ViewBag.Search" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Ara</button>
+            </div>
+            <div class="col-md-2">
+                <a href="/admin/users" class="btn btn-outline-secondary w-100">Temizle</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <span class="text-muted small">Toplam <strong>@Model.TotalCount</strong> kullanıcı</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Kullanıcı</th>
+                        <th>Şirket</th>
+                        <th>Sipariş</th>
+                        <th>Harcama</th>
+                        <th>Rol</th>
+                        <th>Durum</th>
+                        <th>Kayıt</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Items)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@user.FullName</div>
+                                <div class="text-muted small">@user.Email</div>
+                                @if (user.PhoneNumber != null) { <div class="text-muted small">@user.PhoneNumber</div> }
+                            </td>
+                            <td class="small">
+                                @if (user.IsCorporate)
+                                {
+                                    <span>@user.CompanyName</span>
+                                    <span class="badge bg-info ms-1" style="font-size:.65rem">Kurumsal</span>
+                                }
+                                else { <span class="text-muted">—</span> }
+                            </td>
+                            <td><span class="badge bg-light text-dark">@user.OrderCount</span></td>
+                            <td class="fw-semibold small">@user.TotalSpent.ToString("N2")₺</td>
+                            <td>
+                                @foreach (var role in user.Roles)
+                                {
+                                    <span class="badge @(role == "Admin" ? "bg-danger" : "bg-secondary") me-1">@role</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input toggle-active" type="checkbox"
+                                           data-user-id="@user.Id"
+                                           @(user.IsActive ? "checked" : "") />
+                                </div>
+                            </td>
+                            <td class="text-muted small">@user.CreatedAt.ToString("dd.MM.yy")</td>
+                            <td>
+                                <a href="/admin/users/@user.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white">
+            <nav><ul class="pagination pagination-sm mb-0 justify-content-center">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                        <a class="page-link" href="?page=@i&search=@ViewBag.Search">@i</a>
+                    </li>
+                }
+            </ul></nav>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.toggle-active').forEach(cb => {
+    cb.addEventListener('change', async () => {
+        await fetch('/admin/users/setactive', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ userId: cb.dataset.userId, isActive: cb.checked })
+        });
+    });
+});
+</script>
+}

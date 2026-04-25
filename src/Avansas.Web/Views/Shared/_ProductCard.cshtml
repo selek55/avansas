@@ -1,0 +1,71 @@
+@model Avansas.Application.DTOs.ProductListDto
+<div class="card h-100 border-0 shadow-sm product-card">
+    <div class="position-relative">
+        <a href="/urun/@Model.Slug">
+            <img src="@(Model.MainImageUrl ?? "/images/no-image.png")"
+                 class="card-img-top" alt="@Model.Name"
+                 style="height:200px;object-fit:contain;padding:1rem;" />
+        </a>
+        @if (Model.DiscountPercentage > 0)
+        {
+            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-%@Model.DiscountPercentage</span>
+        }
+        <form method="post" action="/istek-listesi/toggle" class="position-absolute top-0 start-0 m-1">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="productId" value="@Model.Id" />
+            <button type="submit" class="btn btn-light btn-sm rounded-circle p-1" style="width:30px;height:30px;line-height:1;" title="İstek listesine ekle">
+                <i class="fas fa-heart text-danger" style="font-size:.7rem;"></i>
+            </button>
+        </form>
+        @if (!Model.IsActive || Model.StockQuantity == 0)
+        {
+            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                 style="background:rgba(255,255,255,.7)">
+                <span class="badge bg-secondary fs-6">Stokta Yok</span>
+            </div>
+        }
+    </div>
+    <div class="card-body d-flex flex-column">
+        <div class="text-muted small mb-1">@Model.CategoryName</div>
+        <a href="/urun/@Model.Slug" class="text-decoration-none text-dark">
+            <h6 class="card-title fw-semibold mb-2" style="line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+                @Model.Name
+            </h6>
+        </a>
+        @if (Model.AverageRating > 0)
+        {
+            <div class="mb-2">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <i class="fas fa-star @(i <= Model.AverageRating ? "text-warning" : "text-muted")" style="font-size:.7rem"></i>
+                }
+                <span class="text-muted small ms-1">(@Model.ReviewCount)</span>
+            </div>
+        }
+        <div class="mt-auto">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div>
+                    @if (Model.DiscountedPrice.HasValue && Model.DiscountedPrice.Value < Model.Price)
+                    {
+                        <span class="text-decoration-line-through text-muted small me-1">@Model.Price.ToString("N2")₺</span>
+                        <span class="fw-bold text-danger fs-5">@Model.EffectivePrice.ToString("N2")₺</span>
+                    }
+                    else
+                    {
+                        <span class="fw-bold text-primary fs-5">@Model.Price.ToString("N2")₺</span>
+                    }
+                </div>
+            </div>
+            <button class="btn btn-primary w-100 btn-sm add-to-cart"
+                    data-product-id="@Model.Id"
+                    @(Model.StockQuantity == 0 ? "disabled" : "")>
+                <i class="fas fa-cart-plus me-1"></i>
+                @(Model.StockQuantity > 0 ? "Sepete Ekle" : "Stokta Yok")
+            </button>
+        </div>
+    </div>
+</div>
+<style>
+.product-card { transition: transform .2s, box-shadow .2s; }
+.product-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.1) !important; }
+</style>

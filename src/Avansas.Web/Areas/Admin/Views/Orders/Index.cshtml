@@ -1,0 +1,94 @@
+@model Avansas.Application.DTOs.PagedResult<Avansas.Application.DTOs.OrderDto>
+@{
+    ViewData["Title"] = "Siparişler";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Status Tabs -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link @(ViewBag.CurrentStatus == null ? "active" : "")" href="/admin/orders">Tümü (@Model.TotalCount)</a></li>
+    @foreach (var (status, label) in new[]{
+        (Avansas.Domain.Enums.OrderStatus.Pending, "Bekleyen"),
+        (Avansas.Domain.Enums.OrderStatus.Confirmed, "Onaylanan"),
+        (Avansas.Domain.Enums.OrderStatus.Processing, "Hazırlanan"),
+        (Avansas.Domain.Enums.OrderStatus.Shipped, "Kargoda"),
+        (Avansas.Domain.Enums.OrderStatus.Delivered, "Teslim"),
+        (Avansas.Domain.Enums.OrderStatus.Cancelled, "İptal"),
+    })
+    {
+        <li class="nav-item">
+            <a class="nav-link @(ViewBag.CurrentStatus?.ToString() == status.ToString() ? "active" : "")"
+               href="/admin/orders?status=@((int)status)">@label</a>
+        </li>
+    }
+</ul>
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="/admin/orders/exportexcel@(ViewBag.CurrentStatus != null ? "?status=" + (int)ViewBag.CurrentStatus : "")"
+       class="btn btn-success">
+        <i class="fas fa-file-excel me-2"></i> Excel'e Aktar
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sipariş No</th>
+                        <th>Müşteri</th>
+                        <th>Tutar</th>
+                        <th>Ödeme</th>
+                        <th>Durum</th>
+                        <th>Tarih</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model.Items)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@order.OrderNumber</td>
+                            <td>
+                                <div>@order.UserFullName</div>
+                                <div class="text-muted small">@order.UserEmail</div>
+                            </td>
+                            <td class="fw-semibold">@order.Total.ToString("N2")₺</td>
+                            <td>
+                                @{
+                                    var pBadge = order.PaymentStatus switch {
+                                        Avansas.Domain.Enums.PaymentStatus.Paid => "success",
+                                        Avansas.Domain.Enums.PaymentStatus.Failed => "danger",
+                                        _ => "warning"
+                                    };
+                                }
+                                <span class="badge bg-@pBadge">@order.PaymentStatusText</span>
+                                <div class="text-muted small">@order.PaymentMethodText</div>
+                            </td>
+                            <td>
+                                @{
+                                    var sBadge = order.Status switch {
+                                        Avansas.Domain.Enums.OrderStatus.Pending => "warning",
+                                        Avansas.Domain.Enums.OrderStatus.Confirmed => "info",
+                                        Avansas.Domain.Enums.OrderStatus.Shipped => "primary",
+                                        Avansas.Domain.Enums.OrderStatus.Delivered => "success",
+                                        Avansas.Domain.Enums.OrderStatus.Cancelled => "danger",
+                                        _ => "secondary"
+                                    };
+                                }
+                                <span class="badge bg-@sBadge">@order.StatusText</span>
+                            </td>
+                            <td class="text-muted small">@order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>
+                                <a href="/admin/orders/@order.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i> Detay
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

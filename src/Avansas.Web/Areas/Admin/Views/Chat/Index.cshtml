@@ -1,0 +1,158 @@
+@{
+    ViewData["Title"] = "Canlı Destek";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row" style="height:calc(100vh - 200px)">
+    <!-- Conversations List -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-light fw-semibold">
+                <i class="fas fa-comments me-2"></i>Aktif Görüşmeler
+                <span id="activeCount" class="badge bg-primary ms-2">0</span>
+            </div>
+            <div class="card-body p-0" id="conversationList" style="overflow-y:auto;">
+                <div class="text-center text-muted py-5" id="noConversations">
+                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                    Henüz aktif görüşme yok
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100 d-flex flex-column">
+            <div class="card-header bg-light fw-semibold d-flex justify-content-between align-items-center">
+                <span id="chatTitle"><i class="fas fa-comment-dots me-2"></i>Görüşme seçin</span>
+                <span id="chatStatus" class="badge bg-secondary">Bekleniyor</span>
+            </div>
+            <div class="card-body flex-fill p-3" id="adminChatMessages" style="overflow-y:auto;min-height:300px;">
+                <div class="text-center text-muted py-5">
+                    Soldaki listeden bir görüşme seçin
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <form id="adminReplyForm" class="d-flex gap-2" style="display:none!important;">
+                    <input type="text" id="adminReplyInput" class="form-control" placeholder="Yanıt yazın..." disabled />
+                    <button type="submit" class="btn btn-primary px-4" id="adminSendBtn" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chathub")
+        .withAutomaticReconnect()
+        .build();
+
+    const conversations = {};
+    let selectedConnectionId = null;
+
+    connection.start().then(() => {
+        connection.invoke("JoinAdminGroup");
+    });
+
+    connection.on("UserConnected", (data) => {
+        conversations[data.connectionId] = { user: data.user, messages: [] };
+        renderConversationList();
+    });
+
+    connection.on("UserDisconnected", (data) => {
+        if (conversations[data.connectionId]) {
+            conversations[data.connectionId].disconnected = true;
+            renderConversationList();
+        }
+    });
+
+    connection.on("ReceiveMessage", (data) => {
+        const cid = data.connectionId;
+        if (!conversations[cid]) {
+            conversations[cid] = { user: data.user, messages: [] };
+        }
+        conversations[cid].messages.push(data);
+        conversations[cid].lastMessage = data.message;
+        if (!data.isAdmin) conversations[cid].unread = (conversations[cid].unread || 0) + 1;
+
+        renderConversationList();
+        if (selectedConnectionId === cid) {
+            renderMessages(cid);
+        }
+    });
+
+    function renderConversationList() {
+        const list = document.getElementById('conversationList');
+        const keys = Object.keys(conversations);
+        document.getElementById('activeCount').textContent = keys.filter(k => !conversations[k].disconnected).length;
+
+        if (keys.length === 0) {
+            document.getElementById('noConversations').style.display = '';
+            return;
+        }
+        document.getElementById('noConversations').style.display = 'none';
+
+        list.innerHTML = keys.map(cid => {
+            const c = conversations[cid];
+            const isActive = selectedConnectionId === cid;
+            const unread = c.unread || 0;
+            return `<div class="d-flex align-items-center gap-2 px-3 py-3 border-bottom cursor-pointer ${isActive ? 'bg-primary bg-opacity-10' : ''} ${c.disconnected ? 'opacity-50' : ''}"
+                         style="cursor:pointer" onclick="selectConversation('${cid}')">
+                <div class="rounded-circle ${c.disconnected ? 'bg-secondary' : 'bg-success'} flex-shrink-0" style="width:10px;height:10px;"></div>
+                <div class="flex-fill">
+                    <div class="fw-semibold small">${c.user}</div>
+                    <div class="text-muted" style="font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${c.lastMessage || ''}</div>
+                </div>
+                ${unread > 0 ? `<span class="badge bg-danger">${unread}</span>` : ''}
+            </div>`;
+        }).join('');
+    }
+
+    function selectConversation(cid) {
+        selectedConnectionId = cid;
+        const c = conversations[cid];
+        c.unread = 0;
+
+        document.getElementById('chatTitle').innerHTML = `<i class="fas fa-user me-2"></i>${c.user}`;
+        document.getElementById('chatStatus').textContent = c.disconnected ? 'Ayrıldı' : 'Çevrimiçi';
+        document.getElementById('chatStatus').className = `badge ${c.disconnected ? 'bg-secondary' : 'bg-success'}`;
+
+        const form = document.getElementById('adminReplyForm');
+        form.style.display = '';
+        form.style.cssText = '';
+        document.getElementById('adminReplyInput').disabled = false;
+        document.getElementById('adminSendBtn').disabled = false;
+
+        renderMessages(cid);
+        renderConversationList();
+    }
+
+    function renderMessages(cid) {
+        const container = document.getElementById('adminChatMessages');
+        const msgs = conversations[cid].messages;
+        container.innerHTML = msgs.map(m => `
+            <div class="mb-2 d-flex ${m.isAdmin ? 'justify-content-end' : 'justify-content-start'}">
+                <div class="px-3 py-2 rounded-3 ${m.isAdmin ? 'bg-primary text-white' : 'bg-light'}" style="max-width:70%">
+                    <div class="small fw-semibold">${m.user}</div>
+                    <div>${m.message}</div>
+                    <div class="text-end" style="font-size:.7rem;opacity:.7;">${m.timestamp}</div>
+                </div>
+            </div>`).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    document.getElementById('adminReplyForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('adminReplyInput');
+        const msg = input.value.trim();
+        if (!msg || !selectedConnectionId) return;
+        connection.invoke("SendReply", selectedConnectionId, msg);
+        input.value = '';
+    });
+</script>
+}

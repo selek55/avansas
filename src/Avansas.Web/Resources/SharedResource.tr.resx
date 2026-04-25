@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType><xsd:choice maxOccurs="unbounded">
+        <xsd:element name="data"><xsd:complexType><xsd:sequence>
+          <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+        </xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" />
+        </xsd:complexType></xsd:element>
+      </xsd:choice></xsd:complexType></xsd:element>
+  </xsd:schema>
+  <data name="Home"><value>Ana Sayfa</value></data>
+  <data name="Products"><value>Ürünler</value></data>
+  <data name="AllProducts"><value>Tüm Ürünler</value></data>
+  <data name="Cart"><value>Sepetim</value></data>
+  <data name="Checkout"><value>Ödeme</value></data>
+  <data name="Login"><value>Giriş Yap</value></data>
+  <data name="Register"><value>Kayıt Ol</value></data>
+  <data name="Logout"><value>Çıkış Yap</value></data>
+  <data name="Profile"><value>Profilim</value></data>
+  <data name="MyAccount"><value>Hesabım</value></data>
+  <data name="Orders"><value>Siparişlerim</value></data>
+  <data name="Addresses"><value>Adreslerim</value></data>
+  <data name="Search"><value>Ürün, kategori veya marka ara...</value></data>
+  <data name="AddToCart"><value>Sepete Ekle</value></data>
+  <data name="OutOfStock"><value>Stokta Yok</value></data>
+  <data name="InStock"><value>Stokta Var</value></data>
+  <data name="ViewAll"><value>Tümünü Gör</value></data>
+  <data name="Blog"><value>Blog</value></data>
+  <data name="Support"><value>Destek</value></data>
+  <data name="Compare"><value>Karşılaştır</value></data>
+  <data name="Wishlist"><value>İstek Listem</value></data>
+  <data name="BulkOrder"><value>Toplu Sipariş</value></data>
+  <data name="FreeShippingMessage"><value>Ücretsiz kargo 500₺ ve üzeri alışverişlerde!</value></data>
+  <data name="AdminPanel"><value>Admin Panel</value></data>
+  <data name="About"><value>Hakkımızda</value></data>
+  <data name="Contact"><value>İletişim</value></data>
+  <data name="ShippingAndDelivery"><value>Kargo &amp; Teslimat</value></data>
+  <data name="ReturnsAndExchange"><value>İade &amp; Değişim</value></data>
+  <data name="PrivacyPolicy"><value>Gizlilik Politikası</value></data>
+  <data name="AllRightsReserved"><value>Tüm hakları saklıdır.</value></data>
+  <data name="Corporate"><value>Kurumsal</value></data>
+  <data name="Help"><value>Yardım</value></data>
+</root>

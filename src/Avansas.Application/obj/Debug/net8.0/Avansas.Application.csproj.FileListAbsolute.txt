@@ -1,0 +1,15 @@
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\Avansas.Application.csproj.AssemblyReference.cache
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\Avansas.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\Avansas.Application.AssemblyInfoInputs.cache
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\Avansas.Application.AssemblyInfo.cs
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\Avansas.Application.csproj.CoreCompileInputs.cache
+D:\repos\selek55\avansas\src\Avansas.Application\bin\Debug\net8.0\Avansas.Application.deps.json
+D:\repos\selek55\avansas\src\Avansas.Application\bin\Debug\net8.0\Avansas.Application.dll
+D:\repos\selek55\avansas\src\Avansas.Application\bin\Debug\net8.0\Avansas.Application.pdb
+D:\repos\selek55\avansas\src\Avansas.Application\bin\Debug\net8.0\Avansas.Domain.dll
+D:\repos\selek55\avansas\src\Avansas.Application\bin\Debug\net8.0\Avansas.Domain.pdb
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\Avansas..B555499A.Up2Date
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\Avansas.Application.dll
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\refint\Avansas.Application.dll
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\Avansas.Application.pdb
+D:\repos\selek55\avansas\src\Avansas.Application\obj\Debug\net8.0\ref\Avansas.Application.dll

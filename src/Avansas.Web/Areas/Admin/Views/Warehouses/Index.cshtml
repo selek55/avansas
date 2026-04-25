@@ -1,0 +1,77 @@
+@model List<Avansas.Application.DTOs.WarehouseDto>
+@{
+    ViewData["Title"] = "Depolar";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div></div>
+    <a href="/admin/warehouses/create" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Yeni Depo
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Depo Adı</th>
+                        <th>Şehir</th>
+                        <th>Telefon</th>
+                        <th>Toplam Stok</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var wh in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@wh.Name</div>
+                                @if (!string.IsNullOrEmpty(wh.Address))
+                                {
+                                    <small class="text-muted">@wh.Address</small>
+                                }
+                            </td>
+                            <td>@(wh.City ?? "-")</td>
+                            <td>@(wh.Phone ?? "-")</td>
+                            <td><span class="badge bg-primary">@wh.TotalStock adet</span></td>
+                            <td>
+                                @if (wh.IsActive)
+                                {
+                                    <span class="badge bg-success">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pasif</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a href="/admin/warehouses/stocks/@wh.Id" class="btn btn-sm btn-outline-info" title="Stoklar">
+                                    <i class="fas fa-boxes"></i>
+                                </a>
+                                <a href="/admin/warehouses/edit/@wh.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="/admin/warehouses/delete" class="d-inline"
+                                      onsubmit="return confirm('Bu depoyu silmek istediğinize emin misiniz?')">
+                                    <input type="hidden" name="id" value="@wh.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="6" class="text-center text-muted py-4">Henüz depo eklenmemiş.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,135 @@
+@model Avansas.Application.DTOs.PagedResult<Avansas.Application.DTOs.ProductListDto>
+@{
+    var category = ViewBag.Category as Avansas.Application.DTOs.CategoryDto;
+    var filter = ViewBag.Filter as Avansas.Application.DTOs.ProductFilterDto ?? new Avansas.Application.DTOs.ProductFilterDto();
+    ViewData["Title"] = category?.Name ?? "Kategori";
+}
+
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Ana Sayfa</a></li>
+            <li class="breadcrumb-item"><a href="/urunler">Ürünler</a></li>
+            <li class="breadcrumb-item active">@category?.Name</li>
+        </ol>
+    </nav>
+
+    @if (category != null)
+    {
+        <div class="mb-4">
+            <h1 class="fw-bold h3">@category.Name</h1>
+            @if (!string.IsNullOrEmpty(category.Description))
+            {
+                <p class="text-muted">@category.Description</p>
+            }
+            @if (category.SubCategories.Any())
+            {
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    @foreach (var sub in category.SubCategories)
+                    {
+                        <a href="/kategori/@sub.Slug" class="btn btn-outline-secondary btn-sm">@sub.Name</a>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <h5 class="fw-bold mb-4">Filtreler</h5>
+                <form method="get">
+                    <div class="mb-4">
+                        <label class="fw-semibold small mb-2">Fiyat Aralığı</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="MinPrice" class="form-control form-control-sm"
+                                   placeholder="Min" value="@filter.MinPrice" />
+                            <input type="number" name="MaxPrice" class="form-control form-control-sm"
+                                   placeholder="Max" value="@filter.MaxPrice" />
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="InStock" value="true" id="inStock"
+                                   @(filter.InStock == true ? "checked" : "") />
+                            <label class="form-check-label small" for="inStock">Sadece Stokta Olanlar</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Filtrele</button>
+                    <a href="/kategori/@category?.Slug" class="btn btn-outline-secondary w-100 mt-2">Temizle</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="bg-white rounded-3 shadow-sm p-3 mb-4 d-flex align-items-center justify-content-between">
+                <span class="text-muted small"><strong>@Model.TotalCount</strong> ürün bulundu</span>
+                <div class="d-flex align-items-center gap-2">
+                    <label class="text-muted small mb-0">Sırala:</label>
+                    <select class="form-select form-select-sm" style="width:auto"
+                            onchange="window.location.href=this.value">
+                        @{
+                            var sorts = new[] {
+                                ("newest","En Yeni"), ("price_asc","Fiyat Artan"),
+                                ("price_desc","Fiyat Azalan"), ("name_asc","İsme Göre")
+                            };
+                            foreach (var (val, label) in sorts)
+                            {
+                                var url = $"?SortBy={val}&MinPrice={filter.MinPrice}&MaxPrice={filter.MaxPrice}";
+                                <option value="@url" selected="@(filter.SortBy == val ? "selected" : null)">@label</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            @if (!Model.Items.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Bu kategoride ürün bulunamadı</h5>
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var product in Model.Items)
+                    {
+                        <div class="col-6 col-md-4 col-xl-3">
+                            @await Html.PartialAsync("_ProductCard", product)
+                        </div>
+                    }
+                </div>
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.HasPreviousPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?PageNumber=@(Model.PageNumber-1)&SortBy=@filter.SortBy">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                            @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" href="?PageNumber=@i&SortBy=@filter.SortBy">@i</a>
+                                </li>
+                            }
+                            @if (Model.HasNextPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?PageNumber=@(Model.PageNumber+1)&SortBy=@filter.SortBy">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+        </div>
+    </div>
+</div>

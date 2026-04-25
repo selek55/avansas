@@ -1,0 +1,498 @@
+@model Avansas.Application.DTOs.ProductDto
+@using Avansas.Application.DTOs
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["MetaTitle"] = Model.Name;
+    ViewData["MetaDescription"] = Model.ShortDescription ?? $"{Model.Name} - {Model.EffectivePrice:N2}₺ | Avansas";
+    ViewData["MetaImage"] = Model.MainImageUrl;
+    var related = ViewBag.RelatedProducts as IEnumerable<ProductListDto> ?? Enumerable.Empty<ProductListDto>();
+    var reviews = ViewBag.Reviews as List<ReviewDto> ?? new List<ReviewDto>();
+    var questions = ViewBag.Questions as List<ProductQuestionDto> ?? new List<ProductQuestionDto>();
+    bool hasReviewed = ViewBag.HasReviewed == true;
+    double avgRating = ViewBag.AvgRating is double d ? d : 0;
+    var variants = ViewBag.Variants as List<ProductVariantDto> ?? new List<ProductVariantDto>();
+    var activeVariants = variants.Where(v => v.IsActive).ToList();
+    var variantGroups = activeVariants.GroupBy(v => v.Name).ToList();
+}
+
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Ana Sayfa</a></li>
+            <li class="breadcrumb-item"><a href="/urunler">Ürünler</a></li>
+            @if (!string.IsNullOrEmpty(Model.CategoryName))
+            {
+                <li class="breadcrumb-item"><a href="/kategori/@Model.CategoryName?.ToLower()">@Model.CategoryName</a></li>
+            }
+            <li class="breadcrumb-item active">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4 mb-5">
+        <!-- Images -->
+        <div class="col-md-5">
+            <div class="bg-white rounded-3 shadow-sm p-3">
+                <img src="@(Model.MainImageUrl ?? "/images/no-image.png")"
+                     class="img-fluid rounded" alt="@Model.Name"
+                     style="max-height:400px;width:100%;object-fit:contain" id="mainImage" />
+                @if (Model.Images.Any())
+                {
+                    <div class="d-flex gap-2 mt-3 overflow-auto">
+                        <img src="@(Model.MainImageUrl ?? "/images/no-image.png")"
+                             class="rounded border border-primary thumb-img"
+                             style="width:60px;height:60px;object-fit:cover;cursor:pointer"
+                             onclick="document.getElementById('mainImage').src=this.src" />
+                        @foreach (var img in Model.Images)
+                        {
+                            <img src="@img.ImageUrl" class="rounded border thumb-img"
+                                 style="width:60px;height:60px;object-fit:cover;cursor:pointer"
+                                 onclick="document.getElementById('mainImage').src=this.src" />
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="col-md-7">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                @if (!string.IsNullOrEmpty(Model.BrandName))
+                {
+                    <div class="text-muted small mb-1">@Model.BrandName</div>
+                }
+                <h1 class="h3 fw-bold mb-2">@Model.Name</h1>
+
+                @if (Model.AverageRating > 0)
+                {
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <i class="fas fa-star @(i <= Model.AverageRating ? "text-warning" : "text-muted")"></i>
+                        }
+                        <span class="text-muted small">@Model.AverageRating.ToString("F1") / 5 (@Model.ReviewCount değerlendirme)</span>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    @if (Model.DiscountedPrice.HasValue && Model.DiscountedPrice.Value < Model.Price)
+                    {
+                        <span class="text-decoration-line-through text-muted me-2 fs-5">@Model.Price.ToString("N2")₺</span>
+                        <span class="fw-bold text-danger fs-2">@Model.EffectivePrice.ToString("N2")₺</span>
+                        <span class="badge bg-danger ms-2 fs-6">%@Model.DiscountPercentage indirim</span>
+                    }
+                    else
+                    {
+                        <span class="fw-bold text-primary fs-2">@Model.Price.ToString("N2")₺</span>
+                    }
+                    <div class="text-muted small mt-1">KDV dahil (@Model.TaxRate% KDV)</div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.ShortDescription))
+                {
+                    <p class="text-muted mb-3">@Model.ShortDescription</p>
+                }
+
+                <div class="mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        @if (Model.StockQuantity > 0)
+                        {
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i> Stokta Var (@Model.StockQuantity adet)</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger"><i class="fas fa-times me-1"></i> Stokta Yok</span>
+                        }
+                    </div>
+                    @if (Model.StockQuantity == 0)
+                    {
+                        <div class="mt-3 p-3 border rounded bg-light">
+                            <p class="mb-2 small fw-semibold"><i class="fas fa-bell me-1 text-primary"></i> Ürün stoğa girdiğinde haber verelim!</p>
+                            @if (TempData["Success"] != null && !TempData["Success"]!.ToString()!.Contains("Soru"))
+                            {
+                                <div class="alert alert-success py-2 small mb-0"><i class="fas fa-check-circle me-1"></i>@TempData["Success"]</div>
+                            }
+                            else
+                            {
+                                <form method="post" action="/urun/stock-notify" class="d-flex gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@Model.Id" />
+                                    <input type="email" name="email" class="form-control form-control-sm" placeholder="E-posta adresiniz"
+                                           value="@(User.Identity?.IsAuthenticated == true ? User.Identity.Name : "")" required />
+                                    <button type="submit" class="btn btn-sm btn-primary text-nowrap"><i class="fas fa-bell me-1"></i>Bildir</button>
+                                </form>
+                            }
+                        </div>
+                    }
+                </div>
+
+                @if (variantGroups.Any())
+                {
+                    <div class="mb-3" id="variantSection">
+                        <input type="hidden" id="selectedVariantId" value="" />
+                        @foreach (var group in variantGroups)
+                        {
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold small mb-1">@group.Key</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var v in group)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary variant-btn"
+                                                data-variant-id="@v.Id"
+                                                data-variant-name="@group.Key"
+                                                data-variant-value="@v.Value"
+                                                data-price-adjustment="@v.PriceAdjustment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                data-stock="@v.StockQuantity"
+                                                data-sku="@v.SKU">
+                                            @v.Value
+                                            @if (v.PriceAdjustment > 0)
+                                            {
+                                                <span class="ms-1 small">(+@v.PriceAdjustment.ToString("N2")TL)</span>
+                                            }
+                                            else if (v.PriceAdjustment < 0)
+                                            {
+                                                <span class="ms-1 small">(@v.PriceAdjustment.ToString("N2")TL)</span>
+                                            }
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="d-flex align-items-center gap-3 mb-4" id="addToCartSection">
+                    <div class="input-group" style="width:120px">
+                        <button class="btn btn-outline-secondary" onclick="changeQty(-1)">-</button>
+                        <input type="number" id="quantity" class="form-control text-center" value="1" min="1" max="@Model.StockQuantity" />
+                        <button class="btn btn-outline-secondary" onclick="changeQty(1)">+</button>
+                    </div>
+                    <button class="btn btn-primary btn-lg flex-fill" id="addToCartBtn"
+                            data-product-id="@Model.Id"
+                            @(Model.StockQuantity == 0 ? "disabled" : "")>
+                        <i class="fas fa-cart-plus me-2"></i>
+                        @(Model.StockQuantity > 0 ? "Sepete Ekle" : "Stokta Yok")
+                    </button>
+                    <form method="post" action="/istek-listesi/toggle">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-outline-danger btn-lg" title="İstek Listesine Ekle">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="row g-2 text-center">
+                    <div class="col-4">
+                        <div class="border rounded p-2 small"><i class="fas fa-truck text-primary mb-1 d-block"></i>Hızlı Kargo</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2 small"><i class="fas fa-shield-alt text-success mb-1 d-block"></i>Güvenli Ödeme</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2 small"><i class="fas fa-undo text-warning mb-1 d-block"></i>30 Gün İade</div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.SKU))
+                {
+                    <div class="mt-3 text-muted small">SKU: @Model.SKU</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Description -->
+    @if (!string.IsNullOrEmpty(Model.Description))
+    {
+        <div class="bg-white rounded-3 shadow-sm p-4 mb-5">
+            <ul class="nav nav-tabs mb-4" id="detailTabs">
+                <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#desc">Ürün Açıklaması</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#reviews">Değerlendirmeler (@Model.ReviewCount)</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#questions">Sorular (@questions.Count(q => q.IsApproved))</a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="desc">
+                    @Html.Raw(Model.Description)
+                </div>
+                <div class="tab-pane fade" id="reviews">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success mb-3"><i class="fas fa-check-circle me-2"></i>@TempData["Success"]</div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger mb-3"><i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]</div>
+                    }
+
+                    <!-- Mevcut Yorumlar -->
+                    @if (reviews.Any())
+                    {
+                        <div class="mb-4">
+                            @foreach (var review in reviews)
+                            {
+                                <div class="border rounded p-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <strong>@review.UserFullName</strong>
+                                        <span class="text-muted small">@review.CreatedAt.ToString("dd.MM.yyyy")</span>
+                                    </div>
+                                    <div class="mb-1">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="fas fa-star @(i <= review.Rating ? "text-warning" : "text-muted")" style="font-size:.8rem;"></i>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(review.Title))
+                                    {
+                                        <div class="fw-semibold mb-1">@review.Title</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(review.Comment))
+                                    {
+                                        <p class="text-muted mb-0 small">@review.Comment</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-4">Henüz değerlendirme yapılmamış. İlk yorumu siz yapın!</p>
+                    }
+
+                    <!-- Yorum Formu -->
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        if (hasReviewed)
+                        {
+                            <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Bu ürün için zaten yorum yaptınız.</div>
+                        }
+                        else
+                        {
+                            <div class="border rounded p-3">
+                                <h6 class="fw-bold mb-3">Değerlendirme Yap</h6>
+                                <form method="post" action="/yorum/olustur">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="ProductId" value="@Model.Id" />
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Puanınız</label>
+                                        <div class="d-flex gap-2" id="starRating">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="fas fa-star fs-4 text-muted star-btn" data-value="@i" style="cursor:pointer;"></i>
+                                            }
+                                        </div>
+                                        <input type="hidden" name="Rating" id="ratingInput" value="0" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Başlık (opsiyonel)</label>
+                                        <input type="text" name="Title" class="form-control" maxlength="100" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Yorumunuz</label>
+                                        <textarea name="Comment" class="form-control" rows="3" maxlength="1000"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Yorum Gönder</button>
+                                </form>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border">
+                            <a href="/hesap/giris" class="text-decoration-none fw-semibold">Giriş yapın</a> ve ilk yorumu siz yazın.
+                        </div>
+                    }
+                </div>
+                <div class="tab-pane fade" id="questions">
+                    @if (TempData["Success"] != null && TempData["Success"]!.ToString()!.Contains("Soru"))
+                    {
+                        <div class="alert alert-success mb-3"><i class="fas fa-check-circle me-2"></i>@TempData["Success"]</div>
+                    }
+
+                    <!-- Onaylanmis Sorular -->
+                    @{ var approvedQuestions = questions.Where(q => q.IsApproved).ToList(); }
+                    @if (approvedQuestions.Any())
+                    {
+                        <div class="mb-4">
+                            @foreach (var question in approvedQuestions)
+                            {
+                                <div class="border rounded p-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <i class="fas fa-question-circle text-primary me-1"></i>
+                                            <strong>@question.AskerName</strong>
+                                        </div>
+                                        <span class="text-muted small">@question.CreatedAt.ToString("dd.MM.yyyy")</span>
+                                    </div>
+                                    <p class="mb-2">@question.QuestionText</p>
+                                    @if (!string.IsNullOrEmpty(question.AnswerText))
+                                    {
+                                        <div class="bg-light rounded p-2 ms-3">
+                                            <i class="fas fa-reply text-success me-1"></i>
+                                            <strong class="small">Satıcı Yanıtı:</strong>
+                                            <p class="mb-0 small mt-1">@question.AnswerText</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small fst-italic"><i class="fas fa-clock me-1"></i>Yanıt bekleniyor...</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-4">Henüz soru sorulmamış. İlk soruyu siz sorun!</p>
+                    }
+
+                    <!-- Soru Formu -->
+                    <div class="border rounded p-3">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-pen me-1"></i>Soru Sor</h6>
+                        <form method="post" action="/urun/ask-question">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@Model.Id" />
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Sorunuz</label>
+                                <textarea name="questionText" class="form-control" rows="3" maxlength="500"
+                                          placeholder="Bu ürün hakkında sormak istediğiniz soruyu yazın..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-1"></i>Soruyu Gönder</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Birlikte Satın Alınanlar -->
+    @{
+        var boughtTogether = ViewBag.FrequentlyBoughtTogether as IEnumerable<Avansas.Application.DTOs.ProductListDto> ?? Enumerable.Empty<Avansas.Application.DTOs.ProductListDto>();
+        var similar = ViewBag.SimilarProducts as IEnumerable<Avansas.Application.DTOs.ProductListDto> ?? Enumerable.Empty<Avansas.Application.DTOs.ProductListDto>();
+    }
+    @if (boughtTogether.Any())
+    {
+        <div class="mb-5">
+            <h4 class="fw-bold mb-4"><i class="fas fa-shopping-basket text-primary me-2"></i>Birlikte Sıkça Satın Alınanlar</h4>
+            @await Html.PartialAsync("_RecommendationCarousel", boughtTogether)
+        </div>
+    }
+    @if (similar.Any())
+    {
+        <div class="mb-5">
+            <h4 class="fw-bold mb-4"><i class="fas fa-layer-group text-secondary me-2"></i>Benzer Ürünler</h4>
+            @await Html.PartialAsync("_RecommendationCarousel", similar)
+        </div>
+    }
+
+    <!-- Related Products -->
+    @if (related.Any())
+    {
+        <div class="mb-5">
+            <h4 class="fw-bold mb-4">Benzer Ürünler</h4>
+            <div class="row g-3">
+                @foreach (var p in related)
+                {
+                    <div class="col-6 col-md-4 col-lg-2">
+                        @await Html.PartialAsync("_ProductCard", p)
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+RecentlyViewed.add({ id: @Model.Id, name: '@Html.Raw(Model.Name.Replace("'", "\\'"))', slug: '@Model.Slug', price: '@Model.EffectivePrice.ToString("N2")', image: '@(Model.MainImageUrl ?? "/images/no-image.png")' });
+</script>
+<script>
+function changeQty(delta) {
+    const input = document.getElementById('quantity');
+    const val = parseInt(input.value) + delta;
+    if (val >= 1 && val <= @Model.StockQuantity) input.value = val;
+}
+
+// Yıldız derecelendirme
+document.querySelectorAll('.star-btn').forEach(star => {
+    star.addEventListener('click', () => {
+        const val = parseInt(star.dataset.value);
+        document.getElementById('ratingInput').value = val;
+        document.querySelectorAll('.star-btn').forEach((s, i) => {
+            s.classList.toggle('text-warning', i < val);
+            s.classList.toggle('text-muted', i >= val);
+        });
+    });
+    star.addEventListener('mouseover', () => {
+        const val = parseInt(star.dataset.value);
+        document.querySelectorAll('.star-btn').forEach((s, i) => {
+            s.classList.toggle('text-warning', i < val);
+            s.classList.toggle('text-muted', i >= val);
+        });
+    });
+});
+document.getElementById('starRating')?.addEventListener('mouseleave', () => {
+    const val = parseInt(document.getElementById('ratingInput').value) || 0;
+    document.querySelectorAll('.star-btn').forEach((s, i) => {
+        s.classList.toggle('text-warning', i < val);
+        s.classList.toggle('text-muted', i >= val);
+    });
+});
+
+document.getElementById('addToCartBtn')?.addEventListener('click', async () => {
+    const qty = parseInt(document.getElementById('quantity').value);
+    const res = await fetch('/sepet/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: @Model.Id, quantity: qty })
+    });
+    const data = await res.json();
+    if (data.success) {
+        document.getElementById('cartCount').textContent = data.itemCount;
+        document.getElementById('cartCount').style.display = '';
+        alert(data.message);
+    } else { alert(data.message); }
+});
+
+// Variant selection
+(function() {
+    const basePrice = @Model.EffectivePrice.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    const variantBtns = document.querySelectorAll('.variant-btn');
+    if (!variantBtns.length) return;
+
+    variantBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Deselect other buttons in same group
+            const groupName = btn.dataset.variantName;
+            document.querySelectorAll(`.variant-btn[data-variant-name="${groupName}"]`).forEach(b => {
+                b.classList.remove('btn-primary');
+                b.classList.add('btn-outline-primary');
+            });
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('btn-primary');
+
+            // Update hidden field
+            const hiddenInput = document.getElementById('selectedVariantId');
+            if (hiddenInput) hiddenInput.value = btn.dataset.variantId;
+
+            // Update displayed price
+            const adjustment = parseFloat(btn.dataset.priceAdjustment) || 0;
+            const newPrice = basePrice + adjustment;
+            const priceEl = document.querySelector('#addToCartSection')?.closest('.bg-white')?.querySelector('.fs-2');
+            if (priceEl) {
+                priceEl.textContent = newPrice.toFixed(2).replace('.', ',') + '\u20BA';
+            }
+
+            // Update stock info based on variant
+            const variantStock = parseInt(btn.dataset.stock);
+            const qtyInput = document.getElementById('quantity');
+            if (qtyInput) {
+                qtyInput.max = variantStock;
+                if (parseInt(qtyInput.value) > variantStock) qtyInput.value = Math.max(1, variantStock);
+            }
+        });
+    });
+})();
+</script>
+}

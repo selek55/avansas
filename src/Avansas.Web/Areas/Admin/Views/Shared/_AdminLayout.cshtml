@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Avansas Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body { background: #f4f6f9; }
+        .sidebar { min-height: 100vh; background: #1a1a2e; color: #fff; }
+        .sidebar .nav-link { color: rgba(255,255,255,.7); border-radius: 8px; margin: 2px 8px; transition: all .2s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,255,255,.1); color: #fff; }
+        .sidebar .nav-link i { width: 20px; }
+        .sidebar-brand { padding: 20px; border-bottom: 1px solid rgba(255,255,255,.1); }
+        .main-content { flex: 1; overflow-y: auto; }
+        .topbar { background: #fff; border-bottom: 1px solid #dee2e6; }
+        .stat-card { border: none; border-radius: 12px; transition: transform .2s; }
+        .stat-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar" style="width:250px;min-width:250px;">
+        <div class="sidebar-brand">
+            <h4 class="mb-0 fw-bold text-primary">avansas</h4>
+            <small class="text-muted">Admin Panel</small>
+        </div>
+        <nav class="nav flex-column py-3">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"
+               href="/admin">
+                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+            </a>
+            <div class="nav-link text-muted small px-3 pt-3 pb-1">KATALOG</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")"
+               href="/admin/products">
+                <i class="fas fa-box me-2"></i> Ürünler
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")"
+               href="/admin/categories">
+                <i class="fas fa-tags me-2"></i> Kategoriler
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Brands" ? "active" : "")"
+               href="/admin/brands">
+                <i class="fas fa-award me-2"></i> Markalar
+            </a>
+            <div class="nav-link text-muted small px-3 pt-3 pb-1">SİPARİŞLER</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "active" : "")"
+               href="/admin/orders">
+                <i class="fas fa-shopping-bag me-2"></i> Siparişler
+            </a>
+            <div class="nav-link text-muted small px-3 pt-3 pb-1">KAMPANYA</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Coupons" ? "active" : "")"
+               href="/admin/coupons">
+                <i class="fas fa-ticket-alt me-2"></i> Kuponlar
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "PriceRules" ? "active" : "")"
+               href="/admin/pricerules">
+                <i class="fas fa-percentage me-2"></i> Fiyat Kuralları
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Banners" ? "active" : "")"
+               href="/admin/banners">
+                <i class="fas fa-image me-2"></i> Bannerlar
+            </a>
+            <div class="nav-link text-muted small px-3 pt-3 pb-1">KULLANICILAR</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")"
+               href="/admin/users">
+                <i class="fas fa-users me-2"></i> Kullanıcılar
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reviews" ? "active" : "")"
+               href="/admin/reviews">
+                <i class="fas fa-star me-2"></i> Yorumlar
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Questions" ? "active" : "")"
+               href="/admin/questions">
+                <i class="fas fa-question-circle me-2"></i> Sorular
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tickets" ? "active" : "")"
+               href="/admin/tickets">
+                <i class="fas fa-headset me-2"></i> Destek Talepleri
+            </a>
+            <div class="nav-link text-muted small px-3 pt-3 pb-1">İÇERİK</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Blog" ? "active" : "")"
+               href="/admin/blog">
+                <i class="fas fa-blog me-2"></i> Blog
+            </a>
+            <div class="nav-link text-muted small px-3 pt-3 pb-1">RAPORLAR</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "active" : "")"
+               href="/admin/reports">
+                <i class="fas fa-chart-bar me-2"></i> Raporlar
+            </a>
+            <div class="nav-link text-muted small px-3 pt-3 pb-1">DEPO</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Warehouses" ? "active" : "")"
+               href="/admin/warehouses">
+                <i class="fas fa-warehouse me-2"></i> Depolar
+            </a>
+            <div class="nav-link text-muted small px-3 pt-3 pb-1">DESTEK</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "active" : "")"
+               href="/admin/chat">
+                <i class="fas fa-comments me-2"></i> Canlı Destek
+            </a>
+            <div class="nav-link text-muted small px-3 pt-3 pb-1">AYARLAR</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")"
+               href="/admin/settings/emailsettings">
+                <i class="fas fa-cog me-2"></i> E-posta Ayarları
+            </a>
+            <hr class="border-secondary mx-3" />
+            <a class="nav-link" href="/"><i class="fas fa-store me-2"></i> Mağazaya Git</a>
+            <form method="post" asp-area="Admin" asp-controller="Account" asp-action="Logout">
+                <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start text-danger">
+                    <i class="fas fa-sign-out-alt me-2"></i> Çıkış Yap
+                </button>
+            </form>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content flex-fill">
+        <!-- Top Bar -->
+        <div class="topbar d-flex align-items-center justify-content-between px-4 py-3 sticky-top">
+            <h5 class="mb-0 fw-semibold">@ViewData["Title"]</h5>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small">@User.Identity?.Name</span>
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @RenderBody()
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

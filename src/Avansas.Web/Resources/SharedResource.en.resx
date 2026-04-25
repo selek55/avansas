@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType><xsd:choice maxOccurs="unbounded">
+        <xsd:element name="data"><xsd:complexType><xsd:sequence>
+          <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+        </xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" />
+        </xsd:complexType></xsd:element>
+      </xsd:choice></xsd:complexType></xsd:element>
+  </xsd:schema>
+  <data name="Home"><value>Home</value></data>
+  <data name="Products"><value>Products</value></data>
+  <data name="AllProducts"><value>All Products</value></data>
+  <data name="Cart"><value>My Cart</value></data>
+  <data name="Checkout"><value>Checkout</value></data>
+  <data name="Login"><value>Sign In</value></data>
+  <data name="Register"><value>Sign Up</value></data>
+  <data name="Logout"><value>Sign Out</value></data>
+  <data name="Profile"><value>My Profile</value></data>
+  <data name="MyAccount"><value>My Account</value></data>
+  <data name="Orders"><value>My Orders</value></data>
+  <data name="Addresses"><value>My Addresses</value></data>
+  <data name="Search"><value>Search products, categories or brands...</value></data>
+  <data name="AddToCart"><value>Add to Cart</value></data>
+  <data name="OutOfStock"><value>Out of Stock</value></data>
+  <data name="InStock"><value>In Stock</value></data>
+  <data name="ViewAll"><value>View All</value></data>
+  <data name="Blog"><value>Blog</value></data>
+  <data name="Support"><value>Support</value></data>
+  <data name="Compare"><value>Compare</value></data>
+  <data name="Wishlist"><value>My Wishlist</value></data>
+  <data name="BulkOrder"><value>Bulk Order</value></data>
+  <data name="FreeShippingMessage"><value>Free shipping on orders over 500₺!</value></data>
+  <data name="AdminPanel"><value>Admin Panel</value></data>
+  <data name="About"><value>About Us</value></data>
+  <data name="Contact"><value>Contact</value></data>
+  <data name="ShippingAndDelivery"><value>Shipping &amp; Delivery</value></data>
+  <data name="ReturnsAndExchange"><value>Returns &amp; Exchange</value></data>
+  <data name="PrivacyPolicy"><value>Privacy Policy</value></data>
+  <data name="AllRightsReserved"><value>All rights reserved.</value></data>
+  <data name="Corporate"><value>Corporate</value></data>
+  <data name="Help"><value>Help</value></data>
+</root>

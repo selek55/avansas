@@ -1,0 +1,86 @@
+@{
+    ViewData["Title"] = "Toplu Sipariş";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold"><i class="fas fa-boxes me-2 text-primary"></i>Toplu Sipariş Talebi</h2>
+                    <p class="text-muted">Kurumsal toplu sipariş talepleriniz için aşağıdaki formu doldurun. Ekibimiz en kısa sürede sizinle iletişime geçecektir.</p>
+                </div>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                    </div>
+                }
+
+                <form method="post" action="/toplu-siparis/submit">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Firma Adı <span class="text-danger">*</span></label>
+                            <input type="text" name="companyName" class="form-control" placeholder="Firma adınız" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Yetkili Ad Soyad <span class="text-danger">*</span></label>
+                            <input type="text" name="contactName" class="form-control" placeholder="Ad Soyad" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">E-posta <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" placeholder="ornek@firma.com" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Telefon</label>
+                            <input type="tel" name="phone" class="form-control" placeholder="05XX XXX XX XX" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Talep Detayı / Ürün Listesi <span class="text-danger">*</span></label>
+                            <textarea name="message" class="form-control" rows="6" placeholder="Talep ettiğiniz ürünleri, miktarları ve varsa özel isteklerinizi yazın..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="fas fa-paper-plane me-2"></i>Talebi Gönder
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row g-3 mt-4">
+                <div class="col-md-4">
+                    <div class="bg-white rounded-3 shadow-sm p-3 text-center">
+                        <i class="fas fa-percent fa-2x text-primary mb-2"></i>
+                        <h6 class="fw-bold">Özel Fiyatlar</h6>
+                        <p class="text-muted small mb-0">Toplu alımlarda özel kurumsal fiyatlandırma</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="bg-white rounded-3 shadow-sm p-3 text-center">
+                        <i class="fas fa-truck fa-2x text-primary mb-2"></i>
+                        <h6 class="fw-bold">Hızlı Teslimat</h6>
+                        <p class="text-muted small mb-0">Kurumsal siparişlerde öncelikli kargo</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="bg-white rounded-3 shadow-sm p-3 text-center">
+                        <i class="fas fa-file-invoice fa-2x text-primary mb-2"></i>
+                        <h6 class="fw-bold">Fatura Kolaylığı</h6>
+                        <p class="text-muted small mb-0">Kurumsal fatura ve vadeli ödeme seçenekleri</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

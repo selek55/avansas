@@ -1,0 +1,83 @@
+@model List<Avansas.Application.DTOs.NotificationDto>
+@{
+    ViewData["Title"] = "Bildirimlerim";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-bell me-2"></i>Bildirimlerim</h5>
+                    @if (Model.Any(n => !n.IsRead))
+                    {
+                        <button id="markAllReadBtn" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-check-double me-1"></i> Tümünü Okundu Yap
+                        </button>
+                    }
+                </div>
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Henüz bildiriminiz yok.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var n in Model)
+                        {
+                            <div class="list-group-item px-3 py-3 @(!n.IsRead ? "bg-light border-start border-primary border-3" : "")"
+                                 data-notification-id="@n.Id">
+                                <div class="d-flex gap-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                                             style="width:42px;height:42px;">
+                                            <i class="@n.TypeIcon text-primary"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-fill">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1 @(!n.IsRead ? "fw-bold" : "")">@n.Title</h6>
+                                            <small class="text-muted">@n.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                        </div>
+                                        <p class="mb-1 text-muted small">@n.Message</p>
+                                        @if (!string.IsNullOrEmpty(n.Link))
+                                        {
+                                            <a href="@n.Link" class="small text-primary text-decoration-none">
+                                                Detay <i class="fas fa-arrow-right ms-1"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                    @if (!n.IsRead)
+                                    {
+                                        <div class="flex-shrink-0">
+                                            <span class="badge rounded-pill bg-primary" title="Okunmadı">&nbsp;</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('markAllReadBtn')?.addEventListener('click', async function() {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            || '@Html.AntiForgeryToken()'.match(/value="([^"]+)"/)?.[1] || '';
+        await fetch('/bildirimler/markallread', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: '__RequestVerificationToken=' + encodeURIComponent(token)
+        });
+        location.reload();
+    });
+</script>
+}

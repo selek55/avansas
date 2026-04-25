@@ -1,0 +1,99 @@
+@model BlogPostDto
+@{
+    ViewData["Title"] = Model.Title;
+    var categories = ViewBag.Categories as List<BlogCategoryDto> ?? new List<BlogCategoryDto>();
+    var currentUrl = Context.Request.Scheme + "://" + Context.Request.Host + Context.Request.Path;
+}
+
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Ana Sayfa</a></li>
+            <li class="breadcrumb-item"><a href="/blog">Blog</a></li>
+            <li class="breadcrumb-item active">@Model.Title</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Post Content -->
+        <div class="col-lg-9">
+            <article class="card shadow-sm border-0">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" class="card-img-top" alt="@Model.Title"
+                         style="max-height:450px; object-fit:cover;" />
+                }
+                <div class="card-body p-4">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        @if (!string.IsNullOrEmpty(Model.CategoryName))
+                        {
+                            <span class="badge bg-primary">@Model.CategoryName</span>
+                        }
+                        <span class="text-muted small">
+                            <i class="fas fa-calendar me-1"></i>@(Model.PublishedAt?.ToString("dd MMMM yyyy") ?? Model.CreatedAt.ToString("dd MMMM yyyy"))
+                        </span>
+                        <span class="text-muted small">
+                            <i class="fas fa-user me-1"></i>@Model.AuthorName
+                        </span>
+                        <span class="text-muted small">
+                            <i class="fas fa-eye me-1"></i>@Model.ViewCount görüntülenme
+                        </span>
+                    </div>
+
+                    <h1 class="fw-bold mb-4">@Model.Title</h1>
+
+                    <div class="blog-content">
+                        @Html.Raw(Model.Content)
+                    </div>
+
+                    <!-- Social Share -->
+                    <hr class="my-4" />
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-semibold text-muted">Paylaş:</span>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString(currentUrl)"
+                           target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                            <i class="fab fa-facebook-f me-1"></i>Facebook
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url=@Uri.EscapeDataString(currentUrl)&text=@Uri.EscapeDataString(Model.Title)"
+                           target="_blank" rel="noopener" class="btn btn-sm btn-outline-info">
+                            <i class="fab fa-twitter me-1"></i>Twitter
+                        </a>
+                        <a href="https://www.linkedin.com/shareArticle?mini=true&url=@Uri.EscapeDataString(currentUrl)&title=@Uri.EscapeDataString(Model.Title)"
+                           target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                            <i class="fab fa-linkedin-in me-1"></i>LinkedIn
+                        </a>
+                        <a href="https://wa.me/?text=@Uri.EscapeDataString(Model.Title + " " + currentUrl)"
+                           target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
+                            <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                        </a>
+                    </div>
+                </div>
+            </article>
+
+            <div class="mt-4">
+                <a href="/blog" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Blog'a Dön
+                </a>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white fw-bold">
+                    <i class="fas fa-folder me-2"></i>Kategoriler
+                </div>
+                <div class="list-group list-group-flush">
+                    @foreach (var cat in categories)
+                    {
+                        <a href="/blog?categoryId=@cat.Id"
+                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            @cat.Name
+                            <span class="badge bg-secondary rounded-pill">@cat.PostCount</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

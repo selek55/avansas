@@ -1,0 +1,227 @@
+@model Avansas.Application.DTOs.PagedResult<Avansas.Application.DTOs.ProductListDto>
+@{
+    ViewData["Title"] = "Ürünler";
+    var filter = ViewBag.Filter as Avansas.Application.DTOs.ProductFilterDto ?? new Avansas.Application.DTOs.ProductFilterDto();
+    var categories = ViewBag.Categories as IEnumerable<Avansas.Application.DTOs.CategoryDto> ?? Enumerable.Empty<Avansas.Application.DTOs.CategoryDto>();
+    var brands = ViewBag.Brands as IEnumerable<Avansas.Application.DTOs.BrandDto> ?? Enumerable.Empty<Avansas.Application.DTOs.BrandDto>();
+}
+
+<div class="container">
+    <div class="row g-4">
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <h5 class="fw-bold mb-4"><i class="fas fa-sliders-h me-2 text-primary"></i>Filtreler</h5>
+                <form method="get">
+                    <!-- Category -->
+                    <div class="mb-4">
+                        <label class="fw-semibold small mb-2">Kategori</label>
+                        @foreach (var cat in categories)
+                        {
+                            <div class="form-check">
+                                <input type="radio" class="form-check-input" name="CategoryId"
+                                       value="@cat.Id" id="cat@cat.Id"
+                                       @(filter.CategoryId == cat.Id ? "checked" : "") />
+                                <label class="form-check-label small" for="cat@cat.Id">@cat.Name</label>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Brands -->
+                    @if (brands.Any())
+                    {
+                        <div class="mb-4">
+                            <label class="fw-semibold small mb-2">Marka</label>
+                            <div style="max-height:160px;overflow-y:auto;">
+                                @foreach (var brand in brands)
+                                {
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="BrandIds"
+                                               value="@brand.Id" id="brand@brand.Id"
+                                               @(filter.BrandIds != null && filter.BrandIds.Contains(brand.Id) ? "checked" : "") />
+                                        <label class="form-check-label small" for="brand@brand.Id">@brand.Name</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Price Range -->
+                    <div class="mb-4">
+                        <label class="fw-semibold small mb-2">Fiyat Araligi</label>
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="number" name="MinPrice" id="minPriceInput" class="form-control form-control-sm"
+                                   placeholder="Min" value="@filter.MinPrice" min="0" step="1" />
+                            <input type="number" name="MaxPrice" id="maxPriceInput" class="form-control form-control-sm"
+                                   placeholder="Max" value="@filter.MaxPrice" min="0" step="1" />
+                        </div>
+                        <input type="range" class="form-range" id="priceRange" min="0" max="5000" step="50"
+                               value="@(filter.MaxPrice ?? 5000)" />
+                        <div class="d-flex justify-content-between text-muted" style="font-size:.7rem;">
+                            <span>0₺</span><span id="priceRangeLabel">@(filter.MaxPrice?.ToString("N0") ?? "5000")₺</span>
+                        </div>
+                    </div>
+
+                    <!-- Rating -->
+                    <div class="mb-4">
+                        <label class="fw-semibold small mb-2">Minimum Puan</label>
+                        <div class="d-flex gap-1">
+                            @for (int star = 1; star <= 5; star++)
+                            {
+                                var isSelected = filter.MinRating.HasValue && filter.MinRating.Value <= star;
+                                <label class="btn btn-sm @(filter.MinRating.HasValue && (int)filter.MinRating.Value == star ? "btn-warning" : "btn-outline-secondary") rating-btn" style="padding:2px 8px;">
+                                    <input type="radio" name="MinRating" value="@star" class="d-none"
+                                           @(filter.MinRating.HasValue && (int)filter.MinRating.Value == star ? "checked" : "") />
+                                    @star <i class="fas fa-star" style="font-size:.7rem;"></i>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- In Stock -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" class="form-check-input" name="InStock" value="true" id="inStock"
+                                   @(filter.InStock == true ? "checked" : "") role="switch" />
+                            <label class="form-check-label small" for="inStock">Sadece Stokta Olanlar</label>
+                        </div>
+                    </div>
+
+                    <!-- Preserve search term if any -->
+                    @if (!string.IsNullOrEmpty(filter.SearchTerm))
+                    {
+                        <input type="hidden" name="SearchTerm" value="@filter.SearchTerm" />
+                    }
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i> Filtrele
+                    </button>
+                    <a href="/urunler" class="btn btn-outline-secondary w-100 mt-2">Temizle</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Products -->
+        <div class="col-lg-9">
+            <div class="bg-white rounded-3 shadow-sm p-3 mb-4 d-flex align-items-center justify-content-between">
+                <span class="text-muted small"><strong>@Model.TotalCount</strong> ürün bulundu</span>
+                <div class="d-flex align-items-center gap-2">
+                    <label class="text-muted small mb-0">Sırala:</label>
+                    <select class="form-select form-select-sm" style="width:auto"
+                            onchange="window.location.href=this.value">
+                        @{
+                            var sorts = new[] {
+                                ("newest","En Yeni"), ("price_asc","Fiyat Artan"),
+                                ("price_desc","Fiyat Azalan"), ("name_asc","İsme Göre")
+                            };
+                            foreach (var (val, label) in sorts)
+                            {
+                                var url = $"?SortBy={val}&SearchTerm={filter.SearchTerm}&CategoryId={filter.CategoryId}";
+                                <option value="@url" selected="@(filter.SortBy == val ? "selected" : null)">@label</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            @if (!Model.Items.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Ürün bulunamadı</h5>
+                    <p class="text-muted">Farklı filtreler deneyebilirsiniz.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var product in Model.Items)
+                    {
+                        <div class="col-6 col-md-4 col-xl-3">
+                            @await Html.PartialAsync("_ProductCard", product)
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.HasPreviousPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?PageNumber=@(Model.PageNumber-1)&CategoryId=@filter.CategoryId&SortBy=@filter.SortBy">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                            @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" href="?PageNumber=@i&CategoryId=@filter.CategoryId&SortBy=@filter.SortBy">@i</a>
+                                </li>
+                            }
+                            @if (Model.HasNextPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?PageNumber=@(Model.PageNumber+1)&CategoryId=@filter.CategoryId&SortBy=@filter.SortBy">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// Price range slider
+(function () {
+    const range = document.getElementById('priceRange');
+    const maxInput = document.getElementById('maxPriceInput');
+    const label = document.getElementById('priceRangeLabel');
+    if (range && maxInput) {
+        range.addEventListener('input', () => {
+            maxInput.value = range.value;
+            if (label) label.textContent = parseInt(range.value).toLocaleString('tr-TR') + '₺';
+        });
+        maxInput.addEventListener('input', () => {
+            range.value = maxInput.value || 5000;
+            if (label) label.textContent = parseInt(maxInput.value || 5000).toLocaleString('tr-TR') + '₺';
+        });
+    }
+
+    // Rating buttons highlight
+    document.querySelectorAll('.rating-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.rating-btn').forEach(b => b.classList.replace('btn-warning', 'btn-outline-secondary'));
+            btn.classList.replace('btn-outline-secondary', 'btn-warning');
+        });
+    });
+})();
+
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const id = btn.dataset.productId;
+        const res = await fetch('/sepet/ekle', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value ?? ''},
+            body: JSON.stringify({productId: parseInt(id), quantity: 1})
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('cartCount').textContent = data.itemCount;
+            document.getElementById('cartCount').style.display = '';
+            btn.innerHTML = '<i class="fas fa-check me-1"></i> Eklendi!';
+            btn.classList.replace('btn-primary','btn-success');
+            setTimeout(() => { btn.innerHTML = '<i class="fas fa-cart-plus me-1"></i> Sepete Ekle'; btn.classList.replace('btn-success','btn-primary'); }, 1500);
+        }
+    });
+});
+</script>
+}

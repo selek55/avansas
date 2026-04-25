@@ -1,0 +1,80 @@
+@model Avansas.Domain.Entities.PaymentTransaction
+@{
+    ViewData["Title"] = "Ödeme Detayı";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="/admin/payments" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h4 class="mb-0">Ödeme #@Model.Id</h4>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">İşlem Bilgileri</h6>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">İşlem ID</dt>
+                    <dd class="col-sm-8">@(Model.TransactionId ?? "-")</dd>
+                    <dt class="col-sm-4 text-muted">Konuşma ID</dt>
+                    <dd class="col-sm-8">@Model.ConversationId</dd>
+                    <dt class="col-sm-4 text-muted">Tutar</dt>
+                    <dd class="col-sm-8 fw-semibold">@Model.Amount.ToString("N2")₺</dd>
+                    <dt class="col-sm-4 text-muted">Ödenen</dt>
+                    <dd class="col-sm-8 fw-semibold text-success">@Model.PaidAmount.ToString("N2")₺</dd>
+                    <dt class="col-sm-4 text-muted">Taksit</dt>
+                    <dd class="col-sm-8">@Model.Installment</dd>
+                    <dt class="col-sm-4 text-muted">Kart</dt>
+                    <dd class="col-sm-8">@(Model.CardAssociation ?? "") @(Model.CardFamily ?? "") **** @(Model.CardLastFour ?? "")</dd>
+                    <dt class="col-sm-4 text-muted">BIN</dt>
+                    <dd class="col-sm-8">@(Model.BinNumber ?? "-")</dd>
+                    @if (!string.IsNullOrEmpty(Model.ErrorCode))
+                    {
+                        <dt class="col-sm-4 text-muted">Hata</dt>
+                        <dd class="col-sm-8 text-danger">[@Model.ErrorCode] @Model.ErrorMessage</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Durum</h6>
+                @{
+                    var badge = Model.Status switch {
+                        Avansas.Domain.Enums.PaymentTransactionStatus.Success => "success",
+                        Avansas.Domain.Enums.PaymentTransactionStatus.Failed => "danger",
+                        Avansas.Domain.Enums.PaymentTransactionStatus.Refunded => "info",
+                        Avansas.Domain.Enums.PaymentTransactionStatus.PartialRefund => "secondary",
+                        _ => "warning"
+                    };
+                }
+                <span class="badge bg-@badge fs-6">@Model.Status</span>
+            </div>
+        </div>
+
+        @if (Model.Status == Avansas.Domain.Enums.PaymentTransactionStatus.Success)
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">İade</h6>
+                    <form method="post" action="/admin/payments/@Model.Id/refund">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-2">
+                            <input type="number" name="amount" class="form-control form-control-sm"
+                                   placeholder="Kısmi iade tutarı (boş=tam iade)" step="0.01" min="0.01" max="@Model.PaidAmount" />
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-danger w-100"
+                                onclick="return confirm('İade işlemi başlatılsın mı?')">
+                            <i class="fas fa-undo me-1"></i>İade Yap
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,80 @@
+@*
+    Reusable address form partial with cascading city/district selects.
+    Usage: <partial name="_AddressForm" />
+*@
+
+<div class="row g-3" id="addressFormPartial">
+    <div class="col-md-6">
+        <label class="form-label fw-semibold">İl <span class="text-danger">*</span></label>
+        <select class="form-select" id="citySelect" name="City" required>
+            <option value="">İl seçiniz...</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label fw-semibold">İlçe <span class="text-danger">*</span></label>
+        <select class="form-select" id="districtSelect" name="District" required disabled>
+            <option value="">Önce il seçiniz...</option>
+        </select>
+    </div>
+</div>
+
+<script>
+(function() {
+    const citySelect = document.getElementById('citySelect');
+    const districtSelect = document.getElementById('districtSelect');
+    if (!citySelect || !districtSelect) return;
+
+    // Load cities
+    fetch('/api/address/cities')
+        .then(r => r.json())
+        .then(cities => {
+            cities.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                citySelect.appendChild(opt);
+            });
+
+            // If there's a pre-selected city value, trigger district load
+            const preCity = citySelect.dataset.value;
+            if (preCity) {
+                citySelect.value = preCity;
+                citySelect.dispatchEvent(new Event('change'));
+            }
+        });
+
+    // On city change, load districts
+    citySelect.addEventListener('change', function() {
+        const city = this.value;
+        districtSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+        districtSelect.disabled = true;
+
+        if (!city) {
+            districtSelect.innerHTML = '<option value="">Önce il seçiniz...</option>';
+            return;
+        }
+
+        fetch('/api/address/districts?city=' + encodeURIComponent(city))
+            .then(r => r.json())
+            .then(districts => {
+                districtSelect.innerHTML = '<option value="">İlçe seçiniz...</option>';
+                districts.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = d;
+                    districtSelect.appendChild(opt);
+                });
+                districtSelect.disabled = false;
+
+                // If there's a pre-selected district value
+                const preDistrict = districtSelect.dataset.value;
+                if (preDistrict) {
+                    districtSelect.value = preDistrict;
+                }
+            })
+            .catch(() => {
+                districtSelect.innerHTML = '<option value="">İlçe bulunamadı</option>';
+            });
+    });
+})();
+</script>

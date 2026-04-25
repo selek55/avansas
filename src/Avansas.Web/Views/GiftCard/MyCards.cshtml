@@ -1,0 +1,72 @@
+@model IEnumerable<Avansas.Application.Interfaces.GiftCardDto>
+@{
+    ViewData["Title"] = "Hediye Kartlarım";
+}
+
+<div class="container py-4">
+    <h4 class="mb-4"><i class="fas fa-gift text-primary me-2"></i>Hediye Kartlarım</h4>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Henüz hediye kartınız yok.</p>
+            <a asp-action="Purchase" class="btn btn-primary">Hediye Kartı Al</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var card in Model)
+            {
+                var isExpired = card.ExpiresAt < DateTime.UtcNow;
+                var isEmpty = card.RemainingBalance <= 0;
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100 @(isExpired || isEmpty ? "opacity-75" : "")">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <i class="fas fa-gift text-primary" style="font-size:2rem;"></i>
+                                @if (isExpired)
+                                {
+                                    <span class="badge bg-danger">Süresi Dolmuş</span>
+                                }
+                                else if (isEmpty)
+                                {
+                                    <span class="badge bg-secondary">Bakiye Yok</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Aktif</span>
+                                }
+                            </div>
+                            <div class="mb-2">
+                                <code class="fs-6 fw-bold letter-spacing-1">@card.Code</code>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small mb-1">
+                                <span>Başlangıç:</span>
+                                <span>@card.InitialBalance.ToString("N2")₺</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-semibold">
+                                <span>Kalan Bakiye:</span>
+                                <span class="text-primary">@card.RemainingBalance.ToString("N2")₺</span>
+                            </div>
+                            <hr class="my-2" />
+                            <small class="text-muted">
+                                Son Kullanım: @card.ExpiresAt.ToString("dd.MM.yyyy")
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left me-1"></i>Geri
+        </a>
+        <a asp-action="Purchase" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Yeni Hediye Kartı Al
+        </a>
+    </div>
+</div>

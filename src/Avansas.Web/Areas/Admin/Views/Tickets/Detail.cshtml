@@ -1,0 +1,113 @@
+@model TicketDto
+@{
+    ViewData["Title"] = "Destek Talebi #" + Model.Id;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <!-- Ticket Info -->
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold">Talep Bilgisi</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted">Konu</td>
+                        <td class="fw-semibold">@Model.Subject</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Kullanıcı</td>
+                        <td>@Model.UserFullName<br /><small class="text-muted">@Model.UserEmail</small></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Durum</td>
+                        <td><span class="badge bg-info">@Model.StatusText</span></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Öncelik</td>
+                        <td>
+                            @switch (Model.Priority)
+                            {
+                                case TicketPriority.Low:
+                                    <span class="badge bg-secondary">Düşük</span>
+                                    break;
+                                case TicketPriority.Normal:
+                                    <span class="badge bg-info">Normal</span>
+                                    break;
+                                case TicketPriority.High:
+                                    <span class="badge bg-warning text-dark">Yüksek</span>
+                                    break;
+                                case TicketPriority.Urgent:
+                                    <span class="badge bg-danger">Acil</span>
+                                    break;
+                            }
+                        </td>
+                    </tr>
+                    @if (Model.OrderNumber != null)
+                    {
+                        <tr>
+                            <td class="text-muted">Sipariş</td>
+                            <td><a href="/admin/orders/detail/@Model.OrderId">@Model.OrderNumber</a></td>
+                        </tr>
+                    }
+                    <tr>
+                        <td class="text-muted">Tarih</td>
+                        <td>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="card-footer bg-white">
+                <form method="post" asp-action="UpdateStatus" asp-area="Admin" asp-controller="Tickets" class="d-flex gap-2">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="Open" selected="@(Model.Status == TicketStatus.Open ? "selected" : null)">Açık</option>
+                        <option value="InProgress" selected="@(Model.Status == TicketStatus.InProgress ? "selected" : null)">İşlemde</option>
+                        <option value="WaitingCustomer" selected="@(Model.Status == TicketStatus.WaitingCustomer ? "selected" : null)">Müşteri Bekleniyor</option>
+                        <option value="Resolved" selected="@(Model.Status == TicketStatus.Resolved ? "selected" : null)">Çözüldü</option>
+                        <option value="Closed" selected="@(Model.Status == TicketStatus.Closed ? "selected" : null)">Kapatıldı</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">Güncelle</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold">Mesajlar (@Model.MessageCount)</h6>
+            </div>
+            <div class="card-body" style="max-height:500px; overflow-y:auto;">
+                @foreach (var msg in Model.Messages)
+                {
+                    <div class="d-flex mb-3 @(msg.IsAdminReply ? "justify-content-end" : "justify-content-start")">
+                        <div class="p-3 rounded-3 @(msg.IsAdminReply ? "bg-primary text-white" : "bg-light")"
+                             style="max-width:75%;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong class="small">@msg.SenderName</strong>
+                                <small class="@(msg.IsAdminReply ? "text-white-50" : "text-muted") ms-3">
+                                    @msg.CreatedAt.ToString("dd.MM.yy HH:mm")
+                                </small>
+                            </div>
+                            <div>@msg.Message</div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="card-footer bg-white">
+                <form method="post" asp-action="Reply" asp-area="Admin" asp-controller="Tickets">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+                    <div class="input-group">
+                        <textarea name="message" class="form-control" rows="2" placeholder="Yanıtınızı yazın..." required></textarea>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i> Gönder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

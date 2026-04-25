@@ -1,0 +1,76 @@
+@{
+    ViewData["Title"] = "Toplu Urun Icerik Aktarimi";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-semibold">
+                    <i class="fas fa-file-excel text-success me-2"></i> Toplu Urun Icerik Aktarimi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6 class="fw-bold"><i class="fas fa-info-circle me-1"></i> Nasil Calisir?</h6>
+                    <ul class="mb-0 small">
+                        <li>Excel dosyasindaki her satir bir urun temsil eder.</li>
+                        <li>SKU/Slug alani mevcut bir urunle eslesirse, o urun <strong>guncellenir</strong>.</li>
+                        <li>Eslesmezse yeni urun <strong>olusturulur</strong>.</li>
+                        <li>Kategori ve Marka adlari mevcut kayitlarla eslestirilir.</li>
+                        <li>Desteklenen format: <strong>.xlsx</strong> (Excel 2007+)</li>
+                    </ul>
+                </div>
+
+                <div class="mb-4">
+                    <a href="/admin/products/downloadtemplate" class="btn btn-outline-success">
+                        <i class="fas fa-download me-2"></i> Sablon Dosyasini Indir
+                    </a>
+                    <a href="/admin/products/exportproducts" class="btn btn-outline-primary ms-2">
+                        <i class="fas fa-file-export me-2"></i> Mevcut Urunleri Indir
+                    </a>
+                </div>
+
+                <hr />
+
+                <form method="post" enctype="multipart/form-data" action="/admin/products/importproducts">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Excel Dosyasi Secin</label>
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required />
+                        <div class="form-text">Maksimum dosya boyutu: 10MB. Sadece .xlsx dosyalari desteklenir.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i> Icerik Aktarimini Baslat
+                    </button>
+                    <a href="/admin/products" class="btn btn-outline-secondary ms-2">Iptal</a>
+                </form>
+
+                <hr />
+
+                <h6 class="fw-bold">Kolon Yapisi</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Kolon</th>
+                                <th>Aciklama</th>
+                                <th>Zorunlu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Ad</td><td>Urun adi</td><td>Evet</td></tr>
+                            <tr><td>SKU</td><td>Urun kodu / slug (guncelleme icin eslestirme)</td><td>Hayir</td></tr>
+                            <tr><td>Fiyat</td><td>Satis fiyati</td><td>Evet</td></tr>
+                            <tr><td>Indirimli Fiyat</td><td>Indirimli fiyat (0 veya bos = indirim yok)</td><td>Hayir</td></tr>
+                            <tr><td>Stok</td><td>Stok adedi</td><td>Hayir</td></tr>
+                            <tr><td>Kategori</td><td>Kategori adi (mevcut kategorilerle eslestirilir)</td><td>Hayir</td></tr>
+                            <tr><td>Marka</td><td>Marka adi (mevcut markalarla eslestirilir)</td><td>Hayir</td></tr>
+                            <tr><td>Aktif</td><td>"Evet" veya "Hayir"</td><td>Hayir</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

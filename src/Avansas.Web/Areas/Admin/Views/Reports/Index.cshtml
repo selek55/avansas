@@ -1,0 +1,214 @@
+@model Avansas.Application.DTOs.ReportDto
+@{
+    ViewData["Title"] = "Raporlar";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var days = (int)(ViewBag.Days ?? 30);
+}
+
+<!-- Period Selector & Export -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="btn-group">
+        <a href="/admin/reports?days=7" class="btn @(days == 7 ? "btn-primary" : "btn-outline-primary")">7 Gun</a>
+        <a href="/admin/reports?days=30" class="btn @(days == 30 ? "btn-primary" : "btn-outline-primary")">30 Gun</a>
+        <a href="/admin/reports?days=90" class="btn @(days == 90 ? "btn-primary" : "btn-outline-primary")">90 Gun</a>
+        <a href="/admin/reports?days=365" class="btn @(days == 365 ? "btn-primary" : "btn-outline-primary")">1 Yil</a>
+    </div>
+    <a href="/admin/reports/exportreport?days=@days" class="btn btn-success">
+        <i class="fas fa-file-excel me-2"></i> Excel'e Aktar
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small mb-1">Toplam Musteri</div>
+                <h3 class="fw-bold text-primary mb-0">@Model.TotalCustomers</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small mb-1">Bu Ay Yeni Musteri</div>
+                <h3 class="fw-bold text-success mb-0">@Model.NewCustomersThisMonth</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small mb-1">Ort. Siparis Tutari</div>
+                <h3 class="fw-bold text-info mb-0">@Model.AverageOrderValue.ToString("N2")₺</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small mb-1">Toplam Gelir</div>
+                <h3 class="fw-bold text-danger mb-0">@Model.DailyRevenue.Sum(d => d.Revenue).ToString("N2")₺</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Daily Revenue Chart -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">
+                <i class="fas fa-chart-line text-primary me-2"></i> Gunluk Gelir
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Sales Pie Chart -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">
+                <i class="fas fa-chart-pie text-success me-2"></i> Kategori Satislari
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Products Bar Chart -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-chart-bar text-warning me-2"></i> En Cok Satan Urunler</span>
+                <a href="/admin/reports/topproducts?days=@days" class="btn btn-sm btn-outline-primary">Tumunu Gor</a>
+            </div>
+            <div class="card-body">
+                <canvas id="topProductsChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Products Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-semibold">
+        <i class="fas fa-trophy text-warning me-2"></i> En Cok Satan Urunler (Tablo)
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Urun Adi</th>
+                        <th class="text-end">Satilan Adet</th>
+                        <th class="text-end">Toplam Gelir</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.TopProducts.Count; i++)
+                    {
+                        var p = Model.TopProducts[i];
+                        <tr>
+                            <td><span class="badge bg-primary">@(i + 1)</span></td>
+                            <td>@p.ProductName</td>
+                            <td class="text-end fw-semibold">@p.TotalSold</td>
+                            <td class="text-end fw-semibold text-success">@p.TotalRevenue.ToString("N2")₺</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Daily Revenue Line Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DailyRevenue.Select(d => d.Date))),
+            datasets: [{
+                label: 'Gelir (₺)',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DailyRevenue.Select(d => d.Revenue))),
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13,110,253,0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3
+            }, {
+                label: 'Siparis Sayisi',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DailyRevenue.Select(d => d.OrderCount))),
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25,135,84,0.1)',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 3,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Gelir (₺)' } },
+                y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Siparis' }, grid: { drawOnChartArea: false } }
+            }
+        }
+    });
+
+    // Category Pie Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategorySales.Select(c => c.CategoryName))),
+            datasets: [{
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategorySales.Select(c => c.TotalRevenue))),
+                backgroundColor: ['#0d6efd','#198754','#ffc107','#dc3545','#0dcaf0','#6f42c1','#fd7e14','#20c997','#d63384','#6610f2']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+        }
+    });
+
+    // Top Products Bar Chart
+    const topCtx = document.getElementById('topProductsChart').getContext('2d');
+    new Chart(topCtx, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopProducts.Select(p => p.ProductName))),
+            datasets: [{
+                label: 'Satilan Adet',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopProducts.Select(p => p.TotalSold))),
+                backgroundColor: '#ffc107',
+                borderRadius: 6
+            }, {
+                label: 'Gelir (₺)',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopProducts.Select(p => p.TotalRevenue))),
+                backgroundColor: '#0d6efd',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } },
+            plugins: { legend: { position: 'top' } }
+        }
+    });
+</script>
+}

@@ -1,0 +1,78 @@
+@model Dictionary<string, string>
+@{
+    ViewData["Title"] = "E-posta Ayarları";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-envelope me-2"></i> E-posta Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="SaveEmailSettings" asp-area="Admin" asp-controller="Settings">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Gönderici E-posta</label>
+                            <input type="text" name="settings[Email:From]" class="form-control"
+                                   value="@(Model.GetValueOrDefault("Email:From"))"
+                                   placeholder="noreply@avansas.com" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Gönderici Adı</label>
+                            <input type="text" name="settings[Email:FromName]" class="form-control"
+                                   value="@(Model.GetValueOrDefault("Email:FromName"))"
+                                   placeholder="Avansas" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Admin E-posta</label>
+                            <input type="text" name="settings[Email:AdminEmail]" class="form-control"
+                                   value="@(Model.GetValueOrDefault("Email:AdminEmail"))"
+                                   placeholder="admin@avansas.com" />
+                            <small class="text-muted">Bildirimler bu adrese gönderilir</small>
+                        </div>
+
+                        <div class="col-12">
+                            <hr />
+                            <h6 class="fw-semibold text-muted mb-3">SMTP Sunucu Ayarları</h6>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">SMTP Host</label>
+                            <input type="text" name="settings[Email:Smtp:Host]" class="form-control"
+                                   value="@(Model.GetValueOrDefault("Email:Smtp:Host"))"
+                                   placeholder="smtp.gmail.com" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">SMTP Port</label>
+                            <input type="number" name="settings[Email:Smtp:Port]" class="form-control"
+                                   value="@(Model.GetValueOrDefault("Email:Smtp:Port"))"
+                                   placeholder="587" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">SMTP Kullanıcı Adı</label>
+                            <input type="text" name="settings[Email:Smtp:Username]" class="form-control"
+                                   value="@(Model.GetValueOrDefault("Email:Smtp:Username"))"
+                                   placeholder="smtp-username" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">SMTP Şifre</label>
+                            <input type="password" name="settings[Email:Smtp:Password]" class="form-control"
+                                   value="@(Model.GetValueOrDefault("Email:Smtp:Password"))"
+                                   placeholder="********" />
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Kaydet
+                            </button>
+                            <a href="/admin" class="btn btn-outline-secondary ms-2">İptal</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

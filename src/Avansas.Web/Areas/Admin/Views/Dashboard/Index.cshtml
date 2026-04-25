@@ -1,0 +1,198 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var stats = ViewBag.Stats as Dictionary<string, object> ?? new();
+    var recentOrders = ViewBag.RecentOrders as IEnumerable<Avansas.Application.DTOs.OrderDto> ?? Enumerable.Empty<Avansas.Application.DTOs.OrderDto>();
+}
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    @{
+        var statCards = new[] {
+            ("Toplam Sipariş", stats.GetValueOrDefault("TotalOrders", 0), "fas fa-shopping-bag", "primary"),
+            ("Bekleyen", stats.GetValueOrDefault("PendingOrders", 0), "fas fa-clock", "warning"),
+            ("Kargoda", stats.GetValueOrDefault("ShippedOrders", 0), "fas fa-truck", "info"),
+            ("Bugün Gelir", stats.GetValueOrDefault("TodayRevenue", 0m), "fas fa-lira-sign", "success"),
+        };
+    }
+    @foreach (var (title, value, icon, color) in statCards)
+    {
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">@title</div>
+                            <div class="fs-3 fw-bold mt-1">
+                                @(value is decimal d ? d.ToString("N2") + "₺" : value.ToString())
+                            </div>
+                        </div>
+                        <div class="bg-@color bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px">
+                            <i class="@icon text-@color"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Revenue Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small">Bu Ay</div>
+                <div class="fs-4 fw-bold text-primary">@((stats.GetValueOrDefault("MonthRevenue", 0m) as decimal? ?? 0m).ToString("N2"))₺</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small">Toplam Gelir</div>
+                <div class="fs-4 fw-bold text-success">@((stats.GetValueOrDefault("TotalRevenue", 0m) as decimal? ?? 0m).ToString("N2"))₺</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small">İşlemdeki Siparişler</div>
+                <div class="fs-4 fw-bold text-info">@stats.GetValueOrDefault("ProcessingOrders", 0)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold">Gelir Grafiği (Son 30 Gün)</h6>
+                <select id="chartDays" class="form-select form-select-sm" style="width:auto;">
+                    <option value="7">7 Gün</option>
+                    <option value="30" selected>30 Gün</option>
+                    <option value="90">90 Gün</option>
+                </select>
+            </div>
+            <div class="card-body"><canvas id="revenueChart" height="250"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white"><h6 class="mb-0 fw-bold">Sipariş Durumları</h6></div>
+            <div class="card-body d-flex align-items-center justify-content-center"><canvas id="statusChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold">Son Siparişler</h6>
+        <a href="/admin/orders" class="btn btn-sm btn-outline-primary">Tümünü Gör</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sipariş No</th>
+                        <th>Müşteri</th>
+                        <th>Tutar</th>
+                        <th>Durum</th>
+                        <th>Tarih</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in recentOrders)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@order.OrderNumber</td>
+                            <td>@order.UserFullName</td>
+                            <td class="fw-semibold">@order.Total.ToString("N2")₺</td>
+                            <td>
+                                @{
+                                    var badgeClass = order.Status switch {
+                                        Avansas.Domain.Enums.OrderStatus.Pending => "warning",
+                                        Avansas.Domain.Enums.OrderStatus.Confirmed => "info",
+                                        Avansas.Domain.Enums.OrderStatus.Shipped => "primary",
+                                        Avansas.Domain.Enums.OrderStatus.Delivered => "success",
+                                        Avansas.Domain.Enums.OrderStatus.Cancelled => "danger",
+                                        _ => "secondary"
+                                    };
+                                }
+                                <span class="badge bg-@badgeClass">@order.StatusText</span>
+                            </td>
+                            <td class="text-muted small">@order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td><a href="/admin/orders/@order.Id" class="btn btn-sm btn-outline-secondary">Detay</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+let revenueChart, statusChart;
+
+async function loadCharts(days = 30) {
+    const res = await fetch(`/admin/dashboard/chartdata?days=${days}`);
+    const data = await res.json();
+
+    const ctx1 = document.getElementById('revenueChart').getContext('2d');
+    if (revenueChart) revenueChart.destroy();
+    revenueChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: data.daily.map(d => d.date),
+            datasets: [{
+                label: 'Gelir (₺)',
+                data: data.daily.map(d => d.revenue),
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13,110,253,0.1)',
+                fill: true, tension: 0.3
+            }, {
+                label: 'Sipariş Adedi',
+                data: data.daily.map(d => d.count),
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25,135,84,0.1)',
+                fill: false, tension: 0.3, yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Gelir (₺)' } },
+                y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Adet' } }
+            }
+        }
+    });
+
+    const colors = ['#ffc107','#0dcaf0','#0d6efd','#198754','#dc3545','#6c757d'];
+    const ctx2 = document.getElementById('statusChart').getContext('2d');
+    if (statusChart) statusChart.destroy();
+    statusChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: data.statusBreakdown.map(s => s.status),
+            datasets: [{
+                data: data.statusBreakdown.map(s => s.count),
+                backgroundColor: colors.slice(0, data.statusBreakdown.length)
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+}
+
+loadCharts();
+document.getElementById('chartDays').addEventListener('change', e => loadCharts(parseInt(e.target.value)));
+</script>
+}

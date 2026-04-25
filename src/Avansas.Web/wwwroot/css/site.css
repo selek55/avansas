@@ -1,0 +1,30 @@
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #212529;
+}
+
+.btn { border-radius: 8px; font-weight: 500; }
+.card { border-radius: 12px; }
+
+.product-card { transition: transform .2s ease, box-shadow .2s ease; border-radius: 12px; overflow: hidden; }
+.product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,.12) !important; }
+
+#cartCount { font-size: .65rem; min-width: 18px; height: 18px; line-height: 18px; }
+
+.table th { font-size: .82rem; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: #6c757d; }
+
+.breadcrumb-item a { color: #0d6efd; text-decoration: none; }
+.breadcrumb-item a:hover { text-decoration: underline; }
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+}
+
+.page-link { border-radius: 8px !important; margin: 0 2px; }
+.sticky-top { z-index: 1020; }
+.thumb-img:hover { border-color: #0d6efd !important; transform: scale(1.05); transition: transform .1s; }
+.stat-card { border: none; border-radius: 12px; transition: transform .2s; }
+.stat-card:hover { transform: translateY(-2px); }

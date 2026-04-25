@@ -1,0 +1,194 @@
+@using Avansas.Domain.Enums
+@{
+    ViewData["Title"] = "Ödeme";
+    var cart = ViewBag.Cart as Avansas.Application.DTOs.CartDto;
+    var addresses = ViewBag.Addresses as IEnumerable<Avansas.Application.DTOs.AddressDto> ?? Enumerable.Empty<Avansas.Application.DTOs.AddressDto>();
+    var shippingCost = (decimal)(ViewBag.ShippingCost ?? 29.90m);
+}
+
+<div class="container">
+    <h2 class="fw-bold mb-4">Ödeme</h2>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <form method="post" action="/odeme/placeorder">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <!-- Teslimat Adresi -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-semibold">
+                        <i class="fas fa-map-marker-alt me-2 text-primary"></i> Teslimat Adresi
+                    </div>
+                    <div class="card-body">
+                        @if (!addresses.Any())
+                        {
+                            <div class="text-center py-3">
+                                <p class="text-muted">Kayıtlı adresiniz yok.</p>
+                                <a href="/hesap/adresler" class="btn btn-outline-primary btn-sm">Adres Ekle</a>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var addr in addresses)
+                            {
+                                <div class="form-check mb-3 p-3 border rounded-2">
+                                    <input class="form-check-input" type="radio" name="shippingAddressId"
+                                           value="@addr.Id" id="addr@addr.Id" required
+                                           @(addr.IsDefault ? "checked" : "") />
+                                    <label class="form-check-label w-100" for="addr@addr.Id">
+                                        <div class="fw-semibold">@addr.Title</div>
+                                        <div class="text-muted small">@addr.FirstName @addr.LastName</div>
+                                        <div class="text-muted small">@addr.AddressLine1, @addr.District / @addr.City</div>
+                                        <div class="text-muted small">@addr.Phone</div>
+                                    </label>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Fatura Adresi -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-semibold">
+                        <i class="fas fa-file-invoice me-2 text-primary"></i> Fatura Adresi
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="sameAddress" checked
+                                   onchange="toggleBillingAddress(this)" />
+                            <label class="form-check-label" for="sameAddress">Teslimat adresiyle aynı</label>
+                        </div>
+                        <div id="billingAddressSection" style="display:none">
+                            @foreach (var addr in addresses)
+                            {
+                                <div class="form-check mb-3 p-3 border rounded-2">
+                                    <input class="form-check-input" type="radio" name="billingAddressId"
+                                           value="@addr.Id" id="bill@addr.Id"
+                                           @(addr.IsDefault ? "checked" : "") />
+                                    <label class="form-check-label w-100" for="bill@addr.Id">
+                                        <div class="fw-semibold">@addr.Title — @addr.FirstName @addr.LastName</div>
+                                        <div class="text-muted small">@addr.AddressLine1, @addr.District / @addr.City</div>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                        <input type="hidden" id="billingAddressIdHidden" name="billingAddressId" value="" />
+                    </div>
+                </div>
+
+                <!-- Ödeme Yöntemi -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-semibold">
+                        <i class="fas fa-credit-card me-2 text-primary"></i> Ödeme Yöntemi
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check p-3 border rounded-2">
+                                    <input class="form-check-input" type="radio" name="paymentMethod"
+                                           value="@((int)PaymentMethod.CreditCard)" id="pm1" checked />
+                                    <label class="form-check-label" for="pm1">
+                                        <i class="fas fa-credit-card me-2"></i> Kredi Kartı
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check p-3 border rounded-2">
+                                    <input class="form-check-input" type="radio" name="paymentMethod"
+                                           value="@((int)PaymentMethod.BankTransfer)" id="pm2" />
+                                    <label class="form-check-label" for="pm2">
+                                        <i class="fas fa-university me-2"></i> Havale/EFT
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check p-3 border rounded-2">
+                                    <input class="form-check-input" type="radio" name="paymentMethod"
+                                           value="@((int)PaymentMethod.CashOnDelivery)" id="pm3" />
+                                    <label class="form-check-label" for="pm3">
+                                        <i class="fas fa-money-bill me-2"></i> Kapıda Ödeme
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Not -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-semibold">Sipariş Notu (İsteğe Bağlı)</div>
+                    <div class="card-body">
+                        <textarea name="note" class="form-control" rows="3"
+                                  placeholder="Sipariş hakkında eklemek istediğiniz notlar..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sipariş Özeti -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm sticky-top" style="top:80px">
+                    <div class="card-header bg-white fw-semibold">Sipariş Özeti</div>
+                    <div class="card-body">
+                        @if (cart != null)
+                        {
+                            @foreach (var item in cart.Items)
+                            {
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">@item.ProductName <span class="badge bg-light text-dark">x@item.Quantity</span></span>
+                                    <span>@item.TotalPrice.ToString("N2")₺</span>
+                                </div>
+                            }
+                            <hr />
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted small">Ara Toplam</span>
+                                <span>@cart.SubTotal.ToString("N2")₺</span>
+                            </div>
+                            @if (cart.DiscountAmount > 0)
+                            {
+                                <div class="d-flex justify-content-between mb-1 text-success small">
+                                    <span>İndirim</span>
+                                    <span>-@cart.DiscountAmount.ToString("N2")₺</span>
+                                </div>
+                            }
+                            <div class="d-flex justify-content-between mb-1 small">
+                                <span class="text-muted">Kargo</span>
+                                <span>@(shippingCost == 0 ? "Ücretsiz" : shippingCost.ToString("N2") + "₺")</span>
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="fw-bold">Toplam</span>
+                                <span class="fw-bold fs-5 text-primary">@((cart.Total + shippingCost - cart.DiscountAmount).ToString("N2"))₺</span>
+                            </div>
+                        }
+
+                        <input type="hidden" name="couponCode" value="@cart?.CouponCode" />
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="fas fa-lock me-2"></i> Siparişi Onayla
+                        </button>
+                        <a href="/sepet" class="btn btn-outline-secondary w-100 mt-2">Sepete Dön</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+function toggleBillingAddress(cb) {
+    document.getElementById('billingAddressSection').style.display = cb.checked ? 'none' : 'block';
+    document.getElementById('billingAddressIdHidden').name = cb.checked ? 'billingAddressId' : '';
+    document.querySelectorAll('[name="billingAddressId"]').forEach(r => r.required = !cb.checked);
+}
+document.querySelector('[name="shippingAddressId"]')?.addEventListener('change', function() {
+    const sameAddr = document.getElementById('sameAddress');
+    if (sameAddr.checked) {
+        const hidden = document.getElementById('billingAddressIdHidden');
+        hidden.value = this.value;
+    }
+});
+</script>
+}

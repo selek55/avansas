@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Avansas.Application/Avansas.Application.csproj" />
+    <Project Path="src/Avansas.Domain/Avansas.Domain.csproj" />
+    <Project Path="src/Avansas.Infrastructure/Avansas.Infrastructure.csproj" />
+    <Project Path="src/Avansas.Web/Avansas.Web.csproj" />
+  </Folder>
+</Solution>

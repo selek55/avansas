@@ -1,0 +1,72 @@
+@model Avansas.Application.DTOs.UpdateCouponDto
+@{
+    ViewData["Title"] = "Kupon Düzenle";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Kupon Düzenle</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Geri</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" />
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Kupon Kodu *</label>
+                    <input asp-for="Code" class="form-control text-uppercase" required style="text-transform:uppercase" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">İndirim Türü *</label>
+                    <select asp-for="DiscountType" class="form-select">
+                        <option value="0">Yüzde (%)</option>
+                        <option value="1">Sabit Tutar (₺)</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">İndirim Değeri *</label>
+                    <input asp-for="DiscountValue" type="number" step="0.01" min="0" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Min. Sipariş Tutarı</label>
+                    <input asp-for="MinOrderAmount" type="number" step="0.01" min="0" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Max. İndirim Tutarı</label>
+                    <input asp-for="MaxDiscountAmount" type="number" step="0.01" min="0" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Kullanım Limiti</label>
+                    <input asp-for="UsageLimit" type="number" min="1" class="form-control" placeholder="Sınırsız" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Başlangıç Tarihi</label>
+                    <input asp-for="ValidFrom" type="datetime-local" class="form-control"
+                           value="@(Model.ValidFrom.HasValue ? Model.ValidFrom.Value.ToString("yyyy-MM-ddTHH:mm") : "")" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Bitiş Tarihi</label>
+                    <input asp-for="ValidTo" type="datetime-local" class="form-control"
+                           value="@(Model.ValidTo.HasValue ? Model.ValidTo.Value.ToString("yyyy-MM-ddTHH:mm") : "")" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsActive" class="form-check-label">Aktif</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Açıklama</label>
+                    <input asp-for="Description" class="form-control" />
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary px-4">Güncelle</button>
+                <a asp-action="Index" class="btn btn-outline-secondary ms-2">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,270 @@
+﻿@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@inject IHtmlLocalizer<Avansas.Web.Resources.SharedResource> SharedLocalizer
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["MetaTitle"] ?? ViewData["Title"]) - Avansas</title>
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "Avansas - Türkiye'nin en büyük online ofis malzemeleri mağazası. Binlerce ürün, hızlı teslimat.")" />
+    <meta property="og:title" content="@(ViewData["MetaTitle"] ?? ViewData["Title"]) - Avansas" />
+    <meta property="og:description" content="@(ViewData["MetaDescription"] ?? "Avansas - Ofis malzemeleri ve kırtasiye ürünleri")" />
+    @if (ViewData["MetaImage"] != null) { <meta property="og:image" content="@ViewData["MetaImage"]" /> }
+    <meta property="og:type" content="website" />
+    <link rel="canonical" href="@(ViewData["CanonicalUrl"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<!-- Top Bar -->
+<div class="bg-dark text-white py-1 small">
+    <div class="container d-flex justify-content-between">
+        <span><i class="fas fa-phone me-1"></i> 0850 123 45 67</span>
+        <span>Ücretsiz kargo 500₺ ve üzeri alışverişlerde!</span>
+        <span><i class="fas fa-envelope me-1"></i> destek@avansas.com</span>
+        @{
+            var currentCulture = Context.Features.Get<IRequestCultureFeature>()?.RequestCulture.UICulture.Name ?? "tr-TR";
+        }
+        <span class="d-flex align-items-center gap-1">
+            <a href="#" class="text-white text-decoration-none small @(currentCulture.StartsWith("tr") ? "fw-bold" : "")"
+               onclick="setCulture('tr-TR'); return false;">TR</a>
+            <span class="text-muted">|</span>
+            <a href="#" class="text-white text-decoration-none small @(currentCulture.StartsWith("en") ? "fw-bold" : "")"
+               onclick="setCulture('en-US'); return false;">EN</a>
+        </span>
+    </div>
+</div>
+<!-- Header -->
+<header class="bg-white shadow-sm sticky-top">
+    <div class="container py-2">
+        <div class="row align-items-center g-2">
+            <div class="col-auto">
+                <a href="/" class="text-decoration-none">
+                    <h1 class="mb-0 fw-bold text-primary" style="font-size:1.8rem;">avansas</h1>
+                </a>
+            </div>
+            <div class="col">
+                <form action="/urunler/ara" method="get" class="d-flex">
+                    <div class="input-group position-relative" id="searchWrapper">
+                        <input type="text" name="q" id="searchInput" class="form-control form-control-lg"
+                               placeholder="Ürün, kategori veya marka ara..."
+                               value="@ViewBag.SearchTerm"
+                               autocomplete="off" />
+                        <button class="btn btn-primary px-4" type="submit"><i class="fas fa-search"></i></button>
+                        <div id="searchDropdown" class="position-absolute w-100 bg-white border rounded-bottom shadow-sm"
+                             style="top:100%;left:0;z-index:1000;display:none;max-height:360px;overflow-y:auto;"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-auto d-flex gap-3 align-items-center">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="dropdown">
+                        <a class="btn btn-outline-secondary dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i> Hesabım
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/hesap/profil"><i class="fas fa-user-circle me-2"></i>Profilim</a></li>
+                            <li><a class="dropdown-item" href="/hesap/siparisler"><i class="fas fa-box me-2"></i>Siparişlerim</a></li>
+                            <li><a class="dropdown-item" href="/hesap/adresler"><i class="fas fa-map-marker-alt me-2"></i>Adreslerim</a></li>
+                            <li><a class="dropdown-item" href="/istek-listesi"><i class="fas fa-heart me-2 text-danger"></i>İstek Listem</a></li>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                            {
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item text-danger" href="/admin"><i class="fas fa-cog me-2"></i>Admin Panel</a></li>
+                            }
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <form method="post" action="/hesap/cikis">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <a href="/hesap/giris" class="btn btn-outline-secondary">
+                        <i class="fas fa-sign-in-alt me-1"></i> Giriş Yap
+                    </a>
+                }
+                <a href="/karsilastir" class="btn btn-outline-secondary position-relative" title="Karşılaştır">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span id="compareCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning" style="display:none">0</span>
+                </a>
+                <a href="/sepet" class="btn btn-primary position-relative">
+                    <i class="fas fa-shopping-cart me-1"></i> Sepetim
+                    <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none">0</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <nav class="bg-primary py-2">
+        <div class="container">
+            <div class="d-flex gap-4 overflow-auto">
+                <a href="/urunler" class="text-white text-decoration-none fw-semibold text-nowrap">
+                    <i class="fas fa-th me-1"></i> Tüm Ürünler
+                </a>
+                @if (ViewBag.Categories != null)
+                {
+                    foreach (var cat in (IEnumerable<Avansas.Application.DTOs.CategoryDto>)ViewBag.Categories)
+                    {
+                        <a href="/kategori/@cat.Slug" class="text-white text-decoration-none text-nowrap">@cat.Name</a>
+                    }
+                }
+                <a href="/blog" class="text-white text-decoration-none text-nowrap">
+                    <i class="fas fa-blog me-1"></i> Blog
+                </a>
+                <a href="/destek" class="text-white text-decoration-none text-nowrap">
+                    <i class="fas fa-headset me-1"></i> Destek
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-0 rounded-0">
+        <div class="container"><i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-0 rounded-0">
+        <div class="container"><i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+}
+
+<main class="py-4 bg-light" style="min-height:60vh">
+    @RenderBody()
+</main>
+
+<!-- Son Görüntülenen Ürünler -->
+<div id="recentlyViewed" class="bg-light pb-4" style="display:none">
+    <div class="container">
+        <h5 class="fw-bold mb-3"><i class="fas fa-history me-2 text-muted"></i>Son Görüntülenen Ürünler</h5>
+        <div class="row g-2 rv-items"></div>
+    </div>
+</div>
+
+<footer class="bg-dark text-white pt-5 pb-3 mt-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <h5 class="fw-bold text-primary mb-3">avansas</h5>
+                <p class="text-muted small">Türkiye'nin en büyük online ofis malzemeleri mağazası.</p>
+            </div>
+            <div class="col-md-3">
+                <h6 class="fw-bold mb-3">Kurumsal</h6>
+                <ul class="list-unstyled small">
+                    <li><a href="#" class="text-muted text-decoration-none">Hakkımızda</a></li>
+                    <li><a href="#" class="text-muted text-decoration-none">İletişim</a></li>
+                    <li><a href="/toplu-siparis" class="text-muted text-decoration-none">Toplu Sipariş</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h6 class="fw-bold mb-3">Yardım</h6>
+                <ul class="list-unstyled small">
+                    <li><a href="#" class="text-muted text-decoration-none">Kargo & Teslimat</a></li>
+                    <li><a href="#" class="text-muted text-decoration-none">İade & Değişim</a></li>
+                    <li><a href="#" class="text-muted text-decoration-none">Gizlilik Politikası</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h6 class="fw-bold mb-3">İletişim</h6>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-phone me-2"></i> 0850 123 45 67</li>
+                    <li><i class="fas fa-envelope me-2"></i> destek@avansas.com</li>
+                </ul>
+            </div>
+        </div>
+        <hr class="border-secondary mt-4" />
+        <div class="text-center text-muted small">© @DateTime.Now.Year Avansas. Tüm hakları saklıdır.</div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script>
+    fetch('/sepet/adet').then(r => r.json()).then(c => {
+        const el = document.getElementById('cartCount');
+        el.textContent = c; el.style.display = c > 0 ? '' : 'none';
+    });
+    RecentlyViewed.render('recentlyViewed');
+    Compare.loadCount();
+</script>
+<script>
+// Arama autocomplete
+(function () {
+    const input = document.getElementById('searchInput');
+    const dropdown = document.getElementById('searchDropdown');
+    if (!input) return;
+
+    let timer, controller;
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        const q = input.value.trim();
+        if (q.length < 2) { dropdown.style.display = 'none'; return; }
+
+        timer = setTimeout(async () => {
+            if (controller) controller.abort();
+            controller = new AbortController();
+            try {
+                const res = await fetch('/urunler/suggestions?q=' + encodeURIComponent(q), { signal: controller.signal });
+                const items = await res.json();
+                if (!items.length) { dropdown.style.display = 'none'; return; }
+
+                dropdown.innerHTML = items.map(p => `
+                    <a href="/urun/${p.slug}" class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-dark border-bottom search-suggestion-item"
+                       style="transition:background .15s;">
+                        <img src="${p.imageUrl}" style="width:40px;height:40px;object-fit:contain;" alt="${p.name}" />
+                        <div class="flex-fill">
+                            <div class="small fw-semibold">${p.name}</div>
+                            ${p.brandName ? `<div class="text-muted" style="font-size:.72rem;">${p.brandName}</div>` : ''}
+                        </div>
+                        <div class="fw-bold text-primary small">${p.price}₺</div>
+                    </a>`).join('') +
+                    `<a href="/urunler/ara?q=${encodeURIComponent(q)}" class="d-block text-center py-2 small text-primary">
+                        Tüm sonuçları gör &rarr;
+                    </a>`;
+
+                dropdown.querySelectorAll('.search-suggestion-item').forEach(el => {
+                    el.addEventListener('mouseenter', () => el.style.background = '#f8f9fa');
+                    el.addEventListener('mouseleave', () => el.style.background = '');
+                });
+                dropdown.style.display = 'block';
+            } catch (e) { /* aborted */ }
+        }, 300);
+    });
+
+    document.addEventListener('click', e => {
+        if (!document.getElementById('searchWrapper').contains(e.target))
+            dropdown.style.display = 'none';
+    });
+
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Escape') dropdown.style.display = 'none';
+    });
+})();
+</script>
+<script>
+function setCulture(culture) {
+    document.cookie = '.AspNetCore.Culture=c=' + culture + '|uic=' + culture + ';path=/;max-age=31536000;samesite=lax';
+    location.reload();
+}
+</script>
+@await Html.PartialAsync("_ChatWidget")
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

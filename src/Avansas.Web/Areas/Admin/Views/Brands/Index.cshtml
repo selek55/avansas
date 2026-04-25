@@ -1,0 +1,85 @@
+@using Avansas.Application.DTOs
+@model List<BrandDto>
+@{
+    ViewData["Title"] = "Markalar";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Markalar</h4>
+    <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Yeni Marka</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Logo</th>
+                    <th>Marka Adı</th>
+                    <th>Slug</th>
+                    <th>Ürün Sayısı</th>
+                    <th>Durum</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(b.LogoUrl))
+                            {
+                                <img src="@b.LogoUrl" style="height:36px;object-fit:contain;" alt="@b.Name" />
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td class="fw-semibold">@b.Name</td>
+                        <td class="text-muted small">@b.Slug</td>
+                        <td>@b.ProductCount</td>
+                        <td>
+                            @if (b.IsActive)
+                            {
+                                <span class="badge bg-success">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Pasif</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Edit" asp-route-id="@b.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" asp-action="Toggle" asp-route-id="@b.Id">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-warning" title="@(b.IsActive ? "Pasife Al" : "Aktife Al")">
+                                        <i class="fas fa-power-off"></i>
+                                    </button>
+                                </form>
+                                <form method="post" asp-action="Delete" asp-route-id="@b.Id"
+                                      onsubmit="return confirm('@b.Name silinsin mi?')">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">Marka bulunamadı.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,82 @@
+@model List<Avansas.Application.DTOs.WarehouseStockDto>
+@{
+    var warehouse = ViewBag.Warehouse as Avansas.Application.DTOs.WarehouseDto;
+    ViewData["Title"] = $"{warehouse?.Name} - Stoklar";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="/admin/warehouses" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Depolara Dön
+    </a>
+</div>
+
+<!-- Add Stock -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">Stok Ekle / Güncelle</div>
+    <div class="card-body">
+        <form method="post" action="/admin/warehouses/updatestock" class="row g-3 align-items-end">
+            <input type="hidden" name="warehouseId" value="@warehouse?.Id" />
+            <div class="col-md-5">
+                <label class="form-label">Ürün</label>
+                <select name="productId" class="form-select" required>
+                    <option value="">-- Ürün Seçin --</option>
+                    @if (ViewBag.Products != null)
+                    {
+                        foreach (var item in (Microsoft.AspNetCore.Mvc.Rendering.SelectList)ViewBag.Products)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Adet</label>
+                <input type="number" name="quantity" class="form-control" min="0" required />
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stock List -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Ürün</th>
+                        <th>Adet</th>
+                        <th class="text-end">Güncelle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var stock in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@stock.ProductName</td>
+                            <td>
+                                <span class="badge @(stock.Quantity > 0 ? "bg-success" : "bg-danger")">@stock.Quantity</span>
+                            </td>
+                            <td class="text-end">
+                                <form method="post" action="/admin/warehouses/updatestock" class="d-inline-flex gap-2 align-items-center">
+                                    <input type="hidden" name="warehouseId" value="@stock.WarehouseId" />
+                                    <input type="hidden" name="productId" value="@stock.ProductId" />
+                                    <input type="number" name="quantity" value="@stock.Quantity" class="form-control form-control-sm" style="width:80px" min="0" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="3" class="text-center text-muted py-4">Bu depoda henüz stok kaydı yok.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

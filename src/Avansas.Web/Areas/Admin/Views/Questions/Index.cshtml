@@ -1,0 +1,117 @@
+@model List<ProductQuestionDto>
+@{
+    ViewData["Title"] = "Ürün Soruları";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div></div>
+    <span class="text-muted small">Toplam <strong>@Model.Count</strong> soru</span>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ürün</th>
+                        <th>Soran</th>
+                        <th>Soru</th>
+                        <th>Yanıt</th>
+                        <th>Durum</th>
+                        <th>Tarih</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var q in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a href="/admin/products/edit/@q.ProductId" class="text-decoration-none">@q.ProductName</a>
+                            </td>
+                            <td>@q.AskerName</td>
+                            <td style="max-width:250px;">@q.QuestionText</td>
+                            <td style="max-width:250px;">
+                                @if (!string.IsNullOrEmpty(q.AnswerText))
+                                {
+                                    <span class="text-success">@q.AnswerText</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Yanıtlanmadı</span>
+                                }
+                            </td>
+                            <td>
+                                @if (q.IsApproved)
+                                {
+                                    <span class="badge bg-success">Onaylı</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Bekliyor</span>
+                                }
+                            </td>
+                            <td class="text-muted small">@q.CreatedAt.ToString("dd.MM.yy")</td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            data-bs-toggle="modal" data-bs-target="#answerModal-@q.Id"
+                                            title="Yanıtla">
+                                        <i class="fas fa-reply"></i>
+                                    </button>
+                                    @if (!q.IsApproved)
+                                    {
+                                        <form method="post" asp-action="Approve" asp-area="Admin" asp-controller="Questions">
+                                            <input type="hidden" name="questionId" value="@q.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Onayla">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    <form method="post" asp-action="Delete" asp-area="Admin" asp-controller="Questions"
+                                          onsubmit="return confirm('Bu soruyu silmek istediğinizden emin misiniz?')">
+                                        <input type="hidden" name="questionId" value="@q.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Answer Modal -->
+                        <div class="modal fade" id="answerModal-@q.Id" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="post" asp-action="Answer" asp-area="Admin" asp-controller="Questions">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Soruyu Yanıtla</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="text-muted small mb-2">
+                                                <strong>@q.AskerName:</strong> @q.QuestionText
+                                            </p>
+                                            <input type="hidden" name="questionId" value="@q.Id" />
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Yanıtınız</label>
+                                                <textarea name="answerText" class="form-control" rows="4"
+                                                          required>@q.AnswerText</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
+                                            <button type="submit" class="btn btn-primary">Yanıtla</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

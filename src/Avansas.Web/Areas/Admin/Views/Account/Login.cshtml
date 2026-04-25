@@ -1,0 +1,66 @@
+@model Avansas.Application.DTOs.LoginDto
+@{
+    ViewData["Title"] = "Admin Girişi";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Girişi — Avansas</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { background: #0f0f1a; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 12px; padding: 2.5rem; width: 100%; max-width: 420px; }
+        .login-card h2 { color: #e94560; letter-spacing: 2px; font-weight: 700; }
+        .login-card .subtitle { color: #8888aa; font-size: .9rem; }
+        .form-control { background: #0f0f1a; border: 1px solid #2d2d44; color: #ddd; border-radius: 8px; }
+        .form-control:focus { background: #0f0f1a; border-color: #e94560; color: #fff; box-shadow: 0 0 0 2px rgba(233,69,96,.2); }
+        .form-label { color: #aaa; font-size: .875rem; }
+        .btn-admin { background: linear-gradient(135deg, #e94560, #c0392b); border: none; color: #fff; font-weight: 600; border-radius: 8px; padding: .75rem; transition: opacity .2s; }
+        .btn-admin:hover { opacity: .85; color: #fff; }
+        .alert-danger { background: rgba(233,69,96,.15); border-color: #e94560; color: #ff8a9a; border-radius: 8px; }
+        .badge-admin { background: #e94560; color: #fff; font-size: .65rem; padding: .25em .6em; border-radius: 4px; vertical-align: middle; }
+        ::placeholder { color: #555 !important; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="text-center mb-4">
+            <h2 class="mb-1">avansas <span class="badge-admin">ADMIN</span></h2>
+            <p class="subtitle">Yönetim Paneli Girişi</p>
+        </div>
+
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">E-posta</label>
+                <input asp-for="Email" class="form-control" placeholder="admin@sirket.com" autocomplete="username" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label">Şifre</label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+            <div class="mb-4">
+                <div class="form-check">
+                    <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMe" />
+                    <label class="form-check-label text-muted small" for="rememberMe">Beni Hatırla</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-admin w-100">Giriş Yap</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="/" class="text-muted small text-decoration-none">← Siteye Dön</a>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

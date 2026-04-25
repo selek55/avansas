@@ -1,0 +1,122 @@
+@model TicketDto
+@{
+    ViewData["Title"] = "Talep #" + Model.Id;
+    string statusBadge = Model.Status switch
+    {
+        TicketStatus.Open => "bg-success",
+        TicketStatus.InProgress => "bg-info",
+        TicketStatus.WaitingCustomer => "bg-warning text-dark",
+        TicketStatus.Resolved => "bg-secondary",
+        TicketStatus.Closed => "bg-dark",
+        _ => "bg-secondary"
+    };
+    bool isClosed = Model.Status == TicketStatus.Closed || Model.Status == TicketStatus.Resolved;
+}
+
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Ana Sayfa</a></li>
+            <li class="breadcrumb-item"><a href="/destek">Destek Taleplerim</a></li>
+            <li class="breadcrumb-item active">Talep #@Model.Id</li>
+        </ol>
+    </nav>
+
+    <!-- Ticket Header -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h4 class="fw-bold mb-1">@Model.Subject</h4>
+                    <div class="d-flex gap-3 text-muted small">
+                        <span><i class="fas fa-calendar me-1"></i>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                        @if (Model.OrderNumber != null)
+                        {
+                            <span><i class="fas fa-box me-1"></i>Sipariş: @Model.OrderNumber</span>
+                        }
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge @statusBadge fs-6">@Model.StatusText</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Thread -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white fw-bold">
+            <i class="fas fa-comments me-2 text-primary"></i>Mesajlar (@Model.MessageCount)
+        </div>
+        <div class="card-body" style="max-height:600px; overflow-y:auto;">
+            @if (!Model.Messages.Any())
+            {
+                <p class="text-muted text-center py-3">Henüz mesaj bulunmuyor.</p>
+            }
+            else
+            {
+                @foreach (var msg in Model.Messages)
+                {
+                    if (msg.IsAdminReply)
+                    {
+                        <!-- Admin message - right aligned, blue bg -->
+                        <div class="d-flex justify-content-end mb-3">
+                            <div class="bg-primary text-white rounded p-3" style="max-width:75%;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="fw-bold"><i class="fas fa-headset me-1"></i>@msg.SenderName (Destek)</small>
+                                    <small class="ms-3 opacity-75">@msg.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                </div>
+                                <div>@msg.Message</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- User message - left aligned -->
+                        <div class="d-flex justify-content-start mb-3">
+                            <div class="bg-light rounded p-3" style="max-width:75%;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="fw-bold"><i class="fas fa-user me-1"></i>@msg.SenderName</small>
+                                    <small class="text-muted ms-3">@msg.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                </div>
+                                <div>@msg.Message</div>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Reply Form -->
+    @if (!isClosed)
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white fw-bold">
+                <i class="fas fa-reply me-2 text-primary"></i>Yanıt Yaz
+            </div>
+            <div class="card-body">
+                <form method="post" action="/destek/@Model.Id/yanit">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <textarea name="message" class="form-control" rows="4"
+                                  placeholder="Mesajınızı yazınız..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Gönder
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-secondary">
+            <i class="fas fa-lock me-2"></i>Bu talep kapatılmış olduğundan yeni mesaj gönderemezsiniz.
+        </div>
+    }
+
+    <a href="/destek" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-2"></i>Taleplerime Dön
+    </a>
+</div>

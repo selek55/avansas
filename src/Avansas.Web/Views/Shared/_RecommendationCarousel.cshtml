@@ -1,0 +1,49 @@
+@using Avansas.Application.DTOs
+@model List<ProductListDto>
+@{
+    var title = ViewData["Title"]?.ToString() ?? "Önerilen Ürünler";
+    var carouselId = "carousel_" + Guid.NewGuid().ToString("N")[..8];
+}
+
+@if (Model != null && Model.Any())
+{
+    <div class="recommendation-carousel mb-4">
+        <h5 class="fw-bold mb-3">@title</h5>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
+            @foreach (var product in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm product-card">
+                        <a asp-controller="Product" asp-action="Detail" asp-route-slug="@product.Slug">
+                            <img src="@(product.MainImageUrl ?? "/images/no-image.png")"
+                                 alt="@product.Name"
+                                 class="card-img-top"
+                                 style="height:140px;object-fit:contain;padding:8px;" />
+                        </a>
+                        <div class="card-body p-2">
+                            <a asp-controller="Product" asp-action="Detail" asp-route-slug="@product.Slug"
+                               class="text-decoration-none text-dark">
+                                <p class="card-text small fw-semibold mb-1 text-truncate" title="@product.Name">@product.Name</p>
+                            </a>
+                            @if (product.DiscountedPrice.HasValue && product.DiscountedPrice < product.Price)
+                            {
+                                <div class="text-danger fw-bold small">@product.DiscountedPrice.Value.ToString("N2") ₺</div>
+                                <div class="text-decoration-line-through text-muted" style="font-size:11px;">@product.Price.ToString("N2") ₺</div>
+                            }
+                            else
+                            {
+                                <div class="fw-bold small">@product.Price.ToString("N2") ₺</div>
+                            }
+                        </div>
+                        <div class="card-footer border-0 bg-transparent p-2">
+                            <button class="btn btn-primary btn-sm w-100 add-to-cart-btn"
+                                    data-product-id="@product.Id">
+                                <i class="fas fa-cart-plus me-1"></i> Sepete Ekle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}

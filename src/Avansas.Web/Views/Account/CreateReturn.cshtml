@@ -1,0 +1,111 @@
+@model Avansas.Application.DTOs.OrderDto
+@{
+    ViewData["Title"] = "İade Talebi Oluştur";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="fas fa-undo me-2"></i>İade Talebi - Sipariş @Model.OrderNumber
+                </h5>
+
+                <form method="post" action="/hesap/iade-olustur">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="OrderId" value="@Model.Id" />
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">İade Sebebi <span class="text-danger">*</span></label>
+                        <textarea name="Reason" class="form-control" rows="3" required
+                                  placeholder="İade sebebinizi açıklayınız..."></textarea>
+                    </div>
+
+                    <h6 class="fw-bold mb-3">İade Edilecek Ürünler</h6>
+                    <div class="list-group mb-4">
+                        @for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            var item = Model.Items[i];
+                            <div class="list-group-item">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input return-item-check"
+                                               data-index="@i" id="item_@i" />
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(item.ProductImageUrl))
+                                    {
+                                        <img src="@item.ProductImageUrl" alt="@item.ProductName"
+                                             style="width:50px;height:50px;object-fit:contain;" />
+                                    }
+                                    <div class="flex-fill">
+                                        <div class="fw-semibold">@item.ProductName</div>
+                                        <small class="text-muted">Birim: @item.UnitPrice.ToString("N2") ₺ | Sipariş adedi: @item.Quantity</small>
+                                    </div>
+                                    <div style="width:100px;">
+                                        <input type="number" class="form-control form-control-sm return-qty"
+                                               data-index="@i" min="1" max="@item.Quantity" value="@item.Quantity" disabled />
+                                    </div>
+                                </div>
+                                <div class="mt-2" style="display:none;" id="reasonDiv_@i">
+                                    <input type="text" class="form-control form-control-sm"
+                                           placeholder="Ürün iade sebebi (opsiyonel)" data-index="@i" id="itemReason_@i" />
+                                </div>
+                                <!-- Hidden fields for selected items -->
+                                <input type="hidden" name="Items[@i].OrderItemId" value="@item.Id" disabled id="hiddenItemId_@i" />
+                                <input type="hidden" name="Items[@i].Quantity" value="@item.Quantity" disabled id="hiddenQty_@i" />
+                                <input type="hidden" name="Items[@i].Reason" value="" disabled id="hiddenReason_@i" />
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="/hesap/siparisler" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Geri
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                            <i class="fas fa-paper-plane me-1"></i> İade Talebi Gönder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.querySelectorAll('.return-item-check').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const idx = this.dataset.index;
+            const qty = document.querySelector(`.return-qty[data-index="${idx}"]`);
+            const reasonDiv = document.getElementById('reasonDiv_' + idx);
+            const hiddenId = document.getElementById('hiddenItemId_' + idx);
+            const hiddenQty = document.getElementById('hiddenQty_' + idx);
+            const hiddenReason = document.getElementById('hiddenReason_' + idx);
+
+            qty.disabled = !this.checked;
+            reasonDiv.style.display = this.checked ? 'block' : 'none';
+            hiddenId.disabled = !this.checked;
+            hiddenQty.disabled = !this.checked;
+            hiddenReason.disabled = !this.checked;
+
+            const anyChecked = document.querySelectorAll('.return-item-check:checked').length > 0;
+            document.getElementById('submitBtn').disabled = !anyChecked;
+        });
+    });
+
+    document.querySelectorAll('.return-qty').forEach(input => {
+        input.addEventListener('change', function() {
+            const idx = this.dataset.index;
+            document.getElementById('hiddenQty_' + idx).value = this.value;
+        });
+    });
+
+    document.querySelectorAll('[id^="itemReason_"]').forEach(input => {
+        input.addEventListener('input', function() {
+            const idx = this.dataset.index;
+            document.getElementById('hiddenReason_' + idx).value = this.value;
+        });
+    });
+</script>
+}

@@ -1,0 +1,88 @@
+@using Avansas.Application.DTOs
+@model List<CouponDto>
+@{
+    ViewData["Title"] = "Kuponlar";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Kuponlar</h4>
+    <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Yeni Kupon</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Kod</th>
+                    <th>İndirim</th>
+                    <th>Min. Tutar</th>
+                    <th>Kullanım</th>
+                    <th>Geçerlilik</th>
+                    <th>Durum</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td><code class="fw-bold">@c.Code</code></td>
+                        <td>
+                            @if (c.DiscountType == Avansas.Domain.Enums.DiscountType.Percentage)
+                            {
+                                <span class="badge bg-info text-dark">%@c.DiscountValue</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info text-dark">@c.DiscountValue.ToString("N2")₺</span>
+                            }
+                        </td>
+                        <td class="small">@(c.MinOrderAmount.HasValue ? c.MinOrderAmount.Value.ToString("N2") + "₺" : "—")</td>
+                        <td class="small">@c.UsedCount / @(c.UsageLimit.HasValue ? c.UsageLimit.Value.ToString() : "∞")</td>
+                        <td class="small text-muted">
+                            @(c.ValidFrom.HasValue ? c.ValidFrom.Value.ToString("dd.MM.yy") : "—")
+                            — @(c.ValidTo.HasValue ? c.ValidTo.Value.ToString("dd.MM.yy") : "∞")
+                        </td>
+                        <td>
+                            @if (c.IsActive)
+                            {
+                                <span class="badge bg-success">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Pasif</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" asp-action="Toggle" asp-route-id="@c.Id">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-power-off"></i></button>
+                                </form>
+                                <form method="post" asp-action="Delete" asp-route-id="@c.Id"
+                                      onsubmit="return confirm('@c.Code silinsin mi?')">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="7" class="text-center text-muted py-4">Kupon bulunamadı.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

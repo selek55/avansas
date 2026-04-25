@@ -1,0 +1,92 @@
+@model Avansas.Application.DTOs.CreatePriceRuleDto
+@{
+    ViewData["Title"] = "Yeni Fiyat Kuralı";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Kural Adı</label>
+                    <input asp-for="Name" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Tür</label>
+                    <select asp-for="Type" asp-items="Html.GetEnumSelectList<Avansas.Domain.Enums.PriceRuleType>()" class="form-select"></select>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">Açıklama</label>
+                    <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">İndirim Değeri</label>
+                    <input asp-for="DiscountValue" class="form-control" type="number" step="0.01" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Yüzde mi?</label>
+                    <select asp-for="IsPercentage" class="form-select">
+                        <option value="true">Yüzde (%)</option>
+                        <option value="false">Sabit Tutar (TL)</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Min. Adet</label>
+                    <input asp-for="MinQuantity" class="form-control" type="number" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Ürün (Opsiyonel)</label>
+                    <select asp-for="ProductId" asp-items="@(ViewBag.Products as SelectList)" class="form-select">
+                        <option value="">-- Tümü --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Kategori (Opsiyonel)</label>
+                    <select asp-for="CategoryId" asp-items="@(ViewBag.Categories as SelectList)" class="form-select">
+                        <option value="">-- Tümü --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Marka (Opsiyonel)</label>
+                    <select asp-for="BrandId" asp-items="@(ViewBag.Brands as SelectList)" class="form-select">
+                        <option value="">-- Tümü --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Müşteri Grubu</label>
+                    <input asp-for="CustomerGroup" class="form-control" placeholder="Ör: VIP, Kurumsal" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Başlangıç Tarihi</label>
+                    <input asp-for="StartDate" class="form-control" type="date" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Bitiş Tarihi</label>
+                    <input asp-for="EndDate" class="form-control" type="date" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Öncelik (yüksek = önce uygulanır)</label>
+                    <input asp-for="Priority" class="form-control" type="number" value="0" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Aktif</label>
+                    <select asp-for="IsActive" class="form-select">
+                        <option value="true">Aktif</option>
+                        <option value="false">Pasif</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Kaydet</button>
+                <a href="/admin/pricerules" class="btn btn-outline-secondary">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>

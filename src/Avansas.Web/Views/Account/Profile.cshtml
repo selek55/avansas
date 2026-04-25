@@ -1,0 +1,151 @@
+@model Avansas.Application.DTOs.UserDto
+@{
+    ViewData["Title"] = "Profilim";
+}
+
+<div class="container">
+    <div class="row g-4">
+        <!-- Sol Menü -->
+        <div class="col-lg-3">
+            <div class="bg-white rounded-3 shadow-sm p-3">
+                <div class="text-center py-3 border-bottom mb-3">
+                    <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-2"
+                         style="width:56px;height:56px">
+                        <span class="text-white fs-4 fw-bold">@Model.FirstName[0]</span>
+                    </div>
+                    <div class="fw-semibold">@Model.FullName</div>
+                    <div class="text-muted small">@Model.Email</div>
+                </div>
+                <nav class="nav flex-column gap-1">
+                    <a href="/hesap" class="nav-link active px-3 py-2 rounded-2 bg-primary text-white">
+                        <i class="fas fa-user me-2"></i> Profilim
+                    </a>
+                    <a href="/hesap/orders" class="nav-link text-dark px-3 py-2">
+                        <i class="fas fa-box me-2"></i> Siparişlerim
+                    </a>
+                    <a href="/hesap/addresses" class="nav-link text-dark px-3 py-2">
+                        <i class="fas fa-map-marker-alt me-2"></i> Adreslerim
+                    </a>
+                    <form method="post" action="/hesap/logout" class="mt-2">
+                        <button type="submit" class="nav-link text-danger px-3 py-2 btn btn-link w-100 text-start">
+                            <i class="fas fa-sign-out-alt me-2"></i> Çıkış Yap
+                        </button>
+                    </form>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Profil Bilgileri -->
+        <div class="col-lg-9">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <h5 class="fw-bold mb-4">Kişisel Bilgilerim</h5>
+                <dl class="row">
+                    <dt class="col-sm-4 text-muted">Ad Soyad</dt>
+                    <dd class="col-sm-8">@Model.FullName</dd>
+
+                    <dt class="col-sm-4 text-muted">E-posta</dt>
+                    <dd class="col-sm-8">@Model.Email</dd>
+
+                    <dt class="col-sm-4 text-muted">Telefon</dt>
+                    <dd class="col-sm-8">@(Model.PhoneNumber ?? "—")</dd>
+
+                    <dt class="col-sm-4 text-muted">Hesap Türü</dt>
+                    <dd class="col-sm-8">@(Model.IsCorporate ? "Kurumsal" : "Bireysel")</dd>
+
+                    @if (Model.IsCorporate)
+                    {
+                        <dt class="col-sm-4 text-muted">Şirket</dt>
+                        <dd class="col-sm-8">@(Model.CompanyName ?? "—")</dd>
+                    }
+
+                    <dt class="col-sm-4 text-muted">Kayıt Tarihi</dt>
+                    <dd class="col-sm-8">@Model.CreatedAt.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))</dd>
+                </dl>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded-2">
+                            <div class="fs-3 fw-bold text-primary">@Model.OrderCount</div>
+                            <div class="text-muted small">Toplam Sipariş</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded-2">
+                            <div class="fs-3 fw-bold text-success">@Model.TotalSpent.ToString("N0")₺</div>
+                            <div class="text-muted small">Toplam Harcama</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded-2">
+                            @{ var loyalty = (Avansas.Application.DTOs.LoyaltySummaryDto)ViewBag.Loyalty; }
+                            <div class="fs-3 fw-bold text-warning">@loyalty.TotalPoints</div>
+                            <div class="text-muted small">Sadakat Puanı</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sadakat Puanlarım -->
+            <div class="bg-white rounded-3 shadow-sm p-4 mt-4">
+                <h5 class="fw-bold mb-4"><i class="fas fa-star text-warning me-2"></i>Sadakat Puanlarım</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="border rounded-2 p-3 text-center">
+                            <div class="fs-4 fw-bold text-warning">@loyalty.TotalPoints</div>
+                            <div class="text-muted small">Kullanılabilir Puan</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded-2 p-3 text-center">
+                            <div class="fs-4 fw-bold text-success">@loyalty.EarnedPoints</div>
+                            <div class="text-muted small">Toplam Kazanılan</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded-2 p-3 text-center">
+                            <div class="fs-4 fw-bold text-danger">@loyalty.SpentPoints</div>
+                            <div class="text-muted small">Toplam Harcanan</div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (loyalty.RecentTransactions.Any())
+                {
+                    <h6 class="fw-semibold mb-3">Son İşlemler</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Açıklama</th>
+                                    <th>Tür</th>
+                                    <th class="text-end">Puan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tx in loyalty.RecentTransactions)
+                                {
+                                    <tr>
+                                        <td class="text-muted small">@tx.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                        <td>@tx.Description</td>
+                                        <td><span class="badge bg-secondary">@tx.TypeText</span></td>
+                                        <td class="text-end fw-semibold @(tx.Points > 0 ? "text-success" : "text-danger")">
+                                            @(tx.Points > 0 ? "+" : "")@tx.Points
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-star fa-2x mb-2 d-block opacity-25"></i>
+                        Henüz puan işleminiz bulunmuyor.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

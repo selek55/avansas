@@ -1,0 +1,186 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+    var featuredProducts = ViewBag.FeaturedProducts as IEnumerable<Avansas.Application.DTOs.ProductListDto> ?? Enumerable.Empty<Avansas.Application.DTOs.ProductListDto>();
+    var newProducts = ViewBag.NewProducts as IEnumerable<Avansas.Application.DTOs.ProductListDto> ?? Enumerable.Empty<Avansas.Application.DTOs.ProductListDto>();
+    var categories = ViewBag.Categories as IEnumerable<Avansas.Application.DTOs.CategoryDto> ?? Enumerable.Empty<Avansas.Application.DTOs.CategoryDto>();
+    var banners = ViewBag.Banners as IEnumerable<Avansas.Application.DTOs.BannerDto> ?? Enumerable.Empty<Avansas.Application.DTOs.BannerDto>();
+}
+
+<!-- Hero Banner -->
+@if (banners.Any())
+{
+    <div class="container-fluid px-0 mb-4">
+        <div id="heroBanner" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                @for (int i = 0; i < banners.Count(); i++)
+                {
+                    <button type="button" data-bs-target="#heroBanner" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")"></button>
+                }
+            </div>
+            <div class="carousel-inner">
+                @{ var idx = 0; }
+                @foreach (var banner in banners)
+                {
+                    <div class="carousel-item @(idx == 0 ? "active" : "")">
+                        <a href="@(banner.LinkUrl ?? "#")">
+                            <div style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color:#fff; padding: 60px 0; min-height:300px;"
+                                 class="d-flex align-items-center">
+                                <div class="container">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <h2 class="display-5 fw-bold mb-3">@banner.Title</h2>
+                                            @if (!string.IsNullOrEmpty(banner.SubTitle))
+                                            {
+                                                <p class="lead mb-4 opacity-75">@banner.SubTitle</p>
+                                            }
+                                            @if (!string.IsNullOrEmpty(banner.ButtonText))
+                                            {
+                                                <span class="btn btn-light btn-lg fw-semibold">@banner.ButtonText</span>
+                                            }
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(banner.ImageUrl))
+                                        {
+                                            <div class="col-md-6 d-none d-md-block text-center">
+                                                <img src="@banner.ImageUrl" alt="@banner.Title" class="img-fluid rounded" style="max-height:250px;" />
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    idx++;
+                }
+            </div>
+            @if (banners.Count() > 1)
+            {
+                <button class="carousel-control-prev" type="button" data-bs-target="#heroBanner" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#heroBanner" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid px-0 mb-4">
+        <div style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color:#fff; padding: 60px 0;">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h2 class="display-5 fw-bold mb-3">Ofis İhtiyaçlarınız<br/>Tek Adreste</h2>
+                        <p class="lead mb-4 opacity-75">Binlerce ürün, hızlı teslimat ve güvenli ödeme ile ofis alışverişi artık çok kolay.</p>
+                        <div class="d-flex gap-3">
+                            <a href="/urunler" class="btn btn-light btn-lg fw-semibold">Alışverişe Başla</a>
+                            <a href="/urunler?SortBy=bestseller" class="btn btn-outline-light btn-lg">Öne Çıkanlar</a>
+                        </div>
+                    </div>
+                    <div class="col-md-6 d-none d-md-flex gap-3 justify-content-center flex-wrap">
+                        <div class="bg-white bg-opacity-10 rounded-3 p-3 text-center" style="width:120px">
+                            <i class="fas fa-shipping-fast fa-2x mb-2"></i>
+                            <div class="small fw-semibold">Hızlı Kargo</div>
+                        </div>
+                        <div class="bg-white bg-opacity-10 rounded-3 p-3 text-center" style="width:120px">
+                            <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                            <div class="small fw-semibold">Güvenli Ödeme</div>
+                        </div>
+                        <div class="bg-white bg-opacity-10 rounded-3 p-3 text-center" style="width:120px">
+                            <i class="fas fa-undo fa-2x mb-2"></i>
+                            <div class="small fw-semibold">Kolay İade</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="container">
+    <!-- Info Bar -->
+    <div class="row g-3 mb-5">
+        @foreach (var (icon, color, title, sub) in new[]{
+            ("fas fa-truck","primary","Ücretsiz Kargo","500₺ ve üzeri"),
+            ("fas fa-lock","success","Güvenli Ödeme","256-bit SSL"),
+            ("fas fa-undo-alt","warning","30 Gün İade","Koşulsuz garanti"),
+            ("fas fa-headset","info","7/24 Destek","Her zaman yanınızda")
+        })
+        {
+            <div class="col-sm-6 col-lg-3">
+                <div class="d-flex align-items-center gap-3 bg-white rounded-3 p-3 shadow-sm h-100">
+                    <div class="text-@color fs-2"><i class="@icon"></i></div>
+                    <div><div class="fw-bold small">@title</div><div class="text-muted small">@sub</div></div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Categories -->
+    @if (categories.Any())
+    {
+        <div class="mb-5">
+            <h3 class="fw-bold mb-4">Kategoriler</h3>
+            <div class="row g-3">
+                @foreach (var cat in categories.Take(6))
+                {
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <a href="/kategori/@cat.Slug" class="text-decoration-none">
+                            <div class="bg-white rounded-3 p-3 text-center shadow-sm h-100 cat-card">
+                                <div class="text-primary fs-1 mb-2"><i class="fas fa-folder"></i></div>
+                                <div class="fw-semibold small">@cat.Name</div>
+                                <div class="text-muted" style="font-size:.75rem">@cat.ProductCount ürün</div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Featured Products -->
+    @if (featuredProducts.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0">Öne Çıkan Ürünler</h3>
+                <a href="/urunler?IsFeatured=true" class="btn btn-outline-primary btn-sm">Tümünü Gör</a>
+            </div>
+            <div class="row g-3">
+                @foreach (var p in featuredProducts)
+                {
+                    <div class="col-6 col-md-4 col-lg-3">
+                        @await Html.PartialAsync("_ProductCard", p)
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- New Products -->
+    @if (newProducts.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0">Yeni Ürünler</h3>
+                <a href="/urunler?IsNewProduct=true" class="btn btn-outline-primary btn-sm">Tümünü Gör</a>
+            </div>
+            <div class="row g-3">
+                @foreach (var p in newProducts)
+                {
+                    <div class="col-6 col-md-4 col-lg-3">
+                        @await Html.PartialAsync("_ProductCard", p)
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<style>
+.cat-card { transition: transform .2s, box-shadow .2s; }
+.cat-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.1) !important; }
+</style>
+}
