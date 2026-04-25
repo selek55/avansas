@@ -18,6 +18,7 @@ public static class DataSeeder
         await SeedBannersAsync(context);
         await SeedProductsAsync(context);
         await SeedCouponsAsync(context);
+        await FixProductBrandsAsync(context);
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -121,6 +122,34 @@ public static class DataSeeder
         };
 
         context.Products.AddRange(products);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task FixProductBrandsAsync(ApplicationDbContext context)
+    {
+        var staplesBrand = await context.Brands.FirstOrDefaultAsync(b => b.Slug == "staples");
+        var faberBrand = await context.Brands.FirstOrDefaultAsync(b => b.Slug == "faber-castell");
+        if (staplesBrand == null) return;
+
+        var slugsToFix = new Dictionary<string, int?>
+        {
+            ["a4-kareli-defter-80-yaprak"] = faberBrand?.Id,
+            ["post-it-yapiskanli-not-kagidi-sari-76x76mm"] = staplesBrand.Id,
+            ["plastik-seffaf-dosya-a4-50li-paket"] = staplesBrand.Id,
+            ["makas-21cm-paslanmaz-celik"] = staplesBrand.Id,
+        };
+
+        foreach (var (slug, brandId) in slugsToFix)
+        {
+            if (brandId == null) continue;
+            var product = await context.Products.FirstOrDefaultAsync(p => p.Slug == slug && p.BrandId == null);
+            if (product != null)
+            {
+                product.BrandId = brandId;
+                context.Products.Update(product);
+            }
+        }
+
         await context.SaveChangesAsync();
     }
 

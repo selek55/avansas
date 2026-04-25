@@ -182,13 +182,24 @@ function toggleBillingAddress(cb) {
     document.getElementById('billingAddressSection').style.display = cb.checked ? 'none' : 'block';
     document.getElementById('billingAddressIdHidden').name = cb.checked ? 'billingAddressId' : '';
     document.querySelectorAll('[name="billingAddressId"]').forEach(r => r.required = !cb.checked);
+    if (cb.checked) {
+        const selected = document.querySelector('[name="shippingAddressId"]:checked');
+        document.getElementById('billingAddressIdHidden').value = selected?.value ?? '';
+    }
 }
 document.querySelector('[name="shippingAddressId"]')?.addEventListener('change', function() {
     const sameAddr = document.getElementById('sameAddress');
     if (sameAddr.checked) {
-        const hidden = document.getElementById('billingAddressIdHidden');
-        hidden.value = this.value;
+        document.getElementById('billingAddressIdHidden').value = this.value;
     }
 });
+// Sayfa yüklendiğinde başlangıç değerini set et
+(function() {
+    const sameAddr = document.getElementById('sameAddress');
+    if (sameAddr?.checked) {
+        const selected = document.querySelector('[name="shippingAddressId"]:checked');
+        document.getElementById('billingAddressIdHidden').value = selected?.value ?? '';
+    }
+})();
 </script>
 }

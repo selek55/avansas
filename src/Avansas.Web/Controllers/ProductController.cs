@@ -61,31 +61,35 @@ public class ProductController : Controller
             await _recommendationService.RecordProductViewAsync(product.Id, userId, sessionId);
         });
 
-        var relatedTask = _productService.GetRelatedProductsAsync(product.Id);
-        var boughtTogetherTask = _recommendationService.GetFrequentlyBoughtTogetherAsync(product.Id, 6);
-        var similarTask = _recommendationService.GetSimilarProductsAsync(product.Id, 6);
+        // Kritik veriler
         var reviewsTask = _reviewService.GetApprovedReviewsAsync(product.Id);
         var avgRatingTask = _reviewService.GetAverageRatingAsync(product.Id);
         var questionsTask = _productQuestionService.GetApprovedQuestionsAsync(product.Id);
         var variantsTask = _productService.GetProductVariantsAsync(product.Id);
+        var relatedTask = _productService.GetRelatedProductsAsync(product.Id);
 
-        await Task.WhenAll(relatedTask, boughtTogetherTask, similarTask, reviewsTask, avgRatingTask, questionsTask, variantsTask);
+        await Task.WhenAll(reviewsTask, avgRatingTask, questionsTask, variantsTask, relatedTask);
 
-        var related = relatedTask.Result;
-        var boughtTogether = boughtTogetherTask.Result;
-        var similar = similarTask.Result;
-        var reviews = reviewsTask.Result;
-        var avgRating = avgRatingTask.Result;
-        var questions = questionsTask.Result;
-        var variants = variantsTask.Result;
+        ViewBag.Reviews = reviewsTask.Result;
+        ViewBag.AvgRating = avgRatingTask.Result;
+        ViewBag.Questions = questionsTask.Result;
+        ViewBag.Variants = variantsTask.Result;
+        ViewBag.RelatedProducts = relatedTask.Result;
 
-        ViewBag.RelatedProducts = related;
-        ViewBag.FrequentlyBoughtTogether = boughtTogether;
-        ViewBag.SimilarProducts = similar;
-        ViewBag.Reviews = reviews;
-        ViewBag.AvgRating = avgRating;
-        ViewBag.Questions = questions;
-        ViewBag.Variants = variants;
+        // Öneri verileri — opsiyonel, hata olsa sayfa yine çalışır
+        try
+        {
+            var boughtTogetherTask = _recommendationService.GetFrequentlyBoughtTogetherAsync(product.Id, 6);
+            var similarTask = _recommendationService.GetSimilarProductsAsync(product.Id, 6);
+            await Task.WhenAll(boughtTogetherTask, similarTask);
+            ViewBag.FrequentlyBoughtTogether = boughtTogetherTask.Result;
+            ViewBag.SimilarProducts = similarTask.Result;
+        }
+        catch
+        {
+            ViewBag.FrequentlyBoughtTogether = Enumerable.Empty<Application.DTOs.ProductListDto>();
+            ViewBag.SimilarProducts = Enumerable.Empty<Application.DTOs.ProductListDto>();
+        }
 
         if (userId != null)
             ViewBag.HasReviewed = await _reviewService.HasUserReviewedAsync(product.Id, userId);
