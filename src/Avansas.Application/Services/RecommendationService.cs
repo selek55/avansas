@@ -17,7 +17,6 @@ public class RecommendationService : IRecommendationService
 
     public async Task<List<ProductListDto>> GetFrequentlyBoughtTogetherAsync(int productId, int count = 6)
     {
-        // Aynı siparişlerde hangi ürünler bir arada satın alındı?
         var orderIds = await _unitOfWork.OrderItems.Query()
             .Where(i => i.ProductId == productId)
             .Select(i => i.OrderId)
@@ -43,21 +42,20 @@ public class RecommendationService : IRecommendationService
         var product = await _unitOfWork.Products.GetByIdAsync(productId);
         if (product == null) return new List<ProductListDto>();
 
-        var similar = await _unitOfWork.Products.Query()
+        var dbProducts = await _unitOfWork.Products.Query()
             .Where(p => p.Id != productId && p.StockQuantity > 0
-                        && (p.CategoryId == product.CategoryId || p.BrandId == product.BrandId))
+                        && (p.CategoryId == product.CategoryId
+                            || (product.BrandId != null && p.BrandId == product.BrandId)))
             .OrderByDescending(p => p.ViewCount)
             .Take(count)
-            .Select(p => MapToListDto(p))
             .ToListAsync();
 
-        return similar;
+        return dbProducts.Select(MapToListDto).ToList();
     }
 
     public async Task<List<ProductListDto>> GetRecentlyViewedAsync(string? userId, string? sessionId, int count = 10)
     {
-        IQueryable<ProductView> query = _unitOfWork.ProductViews.Query()
-            .Include(v => v.Product);
+        IQueryable<ProductView> query = _unitOfWork.ProductViews.Query();
 
         if (!string.IsNullOrEmpty(userId))
             query = query.Where(v => v.UserId == userId);
@@ -80,7 +78,6 @@ public class RecommendationService : IRecommendationService
     {
         var threshold = DateTime.UtcNow.AddMinutes(-30);
 
-        // 30 dakika içinde aynı ürün zaten kaydedilmişse tekrar kayıt yapma
         var exists = await _unitOfWork.ProductViews.Query()
             .AnyAsync(v => v.ProductId == productId
                           && (userId != null ? v.UserId == userId : v.SessionId == sessionId)
@@ -96,7 +93,6 @@ public class RecommendationService : IRecommendationService
             ViewedAt = DateTime.UtcNow
         });
 
-        // ViewCount'u artır
         var product = await _unitOfWork.Products.GetByIdAsync(productId);
         if (product != null)
         {
@@ -109,17 +105,17 @@ public class RecommendationService : IRecommendationService
 
     public async Task<List<ProductListDto>> GetPopularInCategoryAsync(int categoryId, int count = 6)
     {
-        return await _unitOfWork.Products.Query()
+        var dbProducts = await _unitOfWork.Products.Query()
             .Where(p => p.CategoryId == categoryId && p.StockQuantity > 0)
             .OrderByDescending(p => p.ViewCount)
             .Take(count)
-            .Select(p => MapToListDto(p))
             .ToListAsync();
+
+        return dbProducts.Select(MapToListDto).ToList();
     }
 
     public async Task<List<ProductListDto>> GetPersonalizedRecommendationsAsync(string userId, int count = 8)
     {
-        // Kullanıcının satın aldığı kategorileri bul
         var purchasedCategoryIds = await _unitOfWork.OrderItems.Query()
             .Include(i => i.Product)
             .Where(i => i.Order.UserId == userId)
@@ -127,7 +123,6 @@ public class RecommendationService : IRecommendationService
             .Distinct()
             .ToListAsync();
 
-        // Kullanıcının görüntülediği kategorileri ekle
         var viewedCategoryIds = await _unitOfWork.ProductViews.Query()
             .Include(v => v.Product)
             .Where(v => v.UserId == userId)
@@ -139,43 +134,41 @@ public class RecommendationService : IRecommendationService
 
         if (!categoryIds.Any())
         {
-            // Hiç geçmiş yoksa en popüler ürünleri göster
-            return await _unitOfWork.Products.Query()
+            var popular = await _unitOfWork.Products.Query()
                 .Where(p => p.StockQuantity > 0)
                 .OrderByDescending(p => p.ViewCount)
                 .Take(count)
-                .Select(p => MapToListDto(p))
                 .ToListAsync();
+            return popular.Select(MapToListDto).ToList();
         }
 
-        // Kullanıcının zaten satın almadığı, bu kategorilerdeki popüler ürünler
         var purchasedProductIds = await _unitOfWork.OrderItems.Query()
             .Where(i => i.Order.UserId == userId)
             .Select(i => i.ProductId)
             .Distinct()
             .ToListAsync();
 
-        return await _unitOfWork.Products.Query()
+        var dbProducts = await _unitOfWork.Products.Query()
             .Where(p => categoryIds.Contains(p.CategoryId)
                         && !purchasedProductIds.Contains(p.Id)
                         && p.StockQuantity > 0)
             .OrderByDescending(p => p.ViewCount)
             .Take(count)
-            .Select(p => MapToListDto(p))
             .ToListAsync();
+
+        return dbProducts.Select(MapToListDto).ToList();
     }
 
     private async Task<List<ProductListDto>> GetProductListDtos(List<int> productIds)
     {
-        var products = await _unitOfWork.Products.Query()
+        var dbProducts = await _unitOfWork.Products.Query()
             .Where(p => productIds.Contains(p.Id) && p.StockQuantity > 0)
-            .Select(p => MapToListDto(p))
             .ToListAsync();
 
-        // Orijinal sıralamayı koru
-        return productIds.Select(id => products.FirstOrDefault(p => p.Id == id))
+        return productIds
+            .Select(id => dbProducts.FirstOrDefault(p => p.Id == id))
             .Where(p => p != null)
-            .Select(p => p!)
+            .Select(p => MapToListDto(p!))
             .ToList();
     }
 
